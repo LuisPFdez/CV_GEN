@@ -1,3 +1,4 @@
+<!-- Curriculum de ejemplo -->
 <!DOCTYPE html>
 <html lang="es">
 
@@ -10,8 +11,9 @@
 </head>
 
 <body>
-    <nav>
+    <nav  ="lateral"> 
         <h1>Datos Personales</h1>
+        <img>
         {{#IDB Datos 'NOM'}}
             <b>{{Nombre}} </b>
             {{Descripcion}}
@@ -20,11 +22,64 @@
         {{#IT-IF Datos 'ID' '!=' 'NOM'}}
             <b>{{Nombre}}</b>
             {{Descripcion}}
-            <hr>
+            <br>
         {{/IT-IF}}
+        <hr>
+        {{#IT Idiomas}}
+            {{Idioma}}, 
+            {{Nivel}}
+            {{#if Centro}}
+                <br>
+                {{Centro}}
+            {{/if}}
+            <br>
+        {{/IT}}
     </nav>
     <main>
-
+        <hr>
+        <section>
+            {{#IT Formacion }}
+            <a
+             {{#if Link }}
+               href="{{Link}}"
+            {{/if}}
+            >{{Titulo}}</a>, {{Fecha_inicial}} / {{Fecha_fin}}
+            <br>
+            <!-- La funcion if por defecto de handlebars no permite el operador "and" por 
+            lo que es necesario un doble condiciona anidado-->
+            {{Centro}} {{#if Centro }} {{#if Ciudad }} - {{/if}} {{/if}} {{Ciudad}}
+            <br>
+            {{/IT}}
+        </section>
+        <hr>
+        <section>
+            {{#IT Experiencia }}
+            <a
+             {{#if Link }}
+               href="{{Link}}"
+            {{/if}}
+            >{{Empresa}}</a>, {{Fecha_inicial}} / {{Fecha_fin}}
+            <br>
+            <!-- La funcion if por defecto de handlebars no permite el operador "and" por 
+            lo que es necesario un doble condiciona anidado-->
+            {{Funcion}} {{#if Funcion }} {{#if Ciudad }} - {{/if}} {{/if}} {{Ciudad}}
+            <br>
+            {{/IT}}
+        </section>
+        <hr>
+        <section>
+            {{#IT Habilidades}}
+                <b>{{Nombre}}</b> {{#if Descripcion}},{{/if}} {{Descripcion}}
+            <br>
+            {{/IT}}
+        </section>
+        <hr>
+        <section>
+            {{#IT Adicional}}
+                <b>{{Nombre}}</b> {{#if Descripcion}},{{/if}} {{Descripcion}}
+            <br>
+            {{/IT}}
+        </section>
     </main>
 </body>
 

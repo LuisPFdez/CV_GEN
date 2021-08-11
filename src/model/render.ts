@@ -82,7 +82,7 @@ export class Render {
                 //Concatena el objeto renderizado a la respuesta
                 res += options.fn(objeto[i]);
             }
-            
+
             //Devuelve la respuesta
             return res;
         });
@@ -114,13 +114,13 @@ export class Render {
             return res;
 
         });
-        Handlebars.registerHelper("", () => { });
+        
     }
 
     /**
      * Comprueba si la ruta de la plantilla existe
      * @param plantilla string, ruta de la plantilla
-     * @returns 
+     * @returns la ruta absoluta de la plantilla
      */
     comprobarPlantilla(plantilla: string): string {
         //Convierte la ruta a una ruta absoluta, en caso de ser relativa 
@@ -134,11 +134,10 @@ export class Render {
         //Devuelve la ruta de la plantilla (ruta absoluta)
         return plantilla;
     }
-    
+
     /**
      * Getter y setter de las propiedades de la clase
      */
-
     set datos(datos: MDatos) {
         this._datos = datos;
     }
