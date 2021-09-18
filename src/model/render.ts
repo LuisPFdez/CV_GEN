@@ -2,6 +2,7 @@
 import { existsSync, lstatSync, readFileSync, } from "fs"
 import Handlebars from "handlebars";
 import { join, resolve } from "path"
+import {ArchivoNoEncontrado} from "../errors/ArchivoNoEncontrado"
 
 /**
  Tipo que definie un objecto compuesto por un string como clave y un array como valor, el array a su vez se compone de otro objeto
@@ -170,7 +171,7 @@ export class Render {
         }
         catch (e) {
             //En caso de error al renderizar devuelve un mensaje con el mensaje de error
-            return "Error al generar la plantilla:\n " + e.message;
+            return "Error al generar la plantilla:\n " +(<Error> e).message;
         }
     }
 
@@ -199,7 +200,7 @@ export class Render {
         }
         catch (e) {
             //En caso de error al renderizar devuelve un mensaje con el mensaje de error
-            return "Error al generar la plantilla:\n " + e.message;
+            return "Error al generar la plantilla:\n " + (<Error> e).message;
         }
     }
 }
