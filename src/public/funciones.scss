@@ -1,0 +1,70 @@
+//Importa sass:list para el manejo de listas
+@use "sass:list";
+
+$variableGlobal: null;
+
+//Permite generar clases a partir de un map
+@mixin generar-clases ($nombre, $valores) {
+    //Comprueba que el 
+    @if type-of($valores) != 'map' {
+        @error "El valor de $valores ha de ser un map";
+    }
+
+    @each $nom, $valor in $valores {
+        $variableGlobal: $valor !global;
+        .#{$nombre}-#{$nom} {
+            @content;
+        }
+    }
+    
+}
+
+//Funcion para generar un degradado de forma automatica en base a los parametros
+@function degradado ( $colores, $porcentajes:() ){
+    // Comprueba que porcentajes sea una lista, en caso de no serlo lanza un error
+    @if type-of($porcentajes) != "list" {
+        @error "$porcentajes ha de ser una lista ";
+    }
+    
+    //En caso de que colores sea un map, lo convierte a un list
+    @if  type-of($colores) == "map" {
+        //Varialbe que almacena el list resultante del map, se inizializa como un list vacio
+        $tmp: ();
+        //Recorre el map
+        @each $nombre, $valor in $colores {
+            //Asigna a tmp los valores del map
+            $tmp: list.append($tmp, $valor);
+        }
+        //Asigna a colores el list generado
+        $colores: $tmp;
+    }
+
+    //Almacena las longitudes de colores y porcentajes en variables;
+    $longitud-colores: list.length($colores);
+    $longitud-porcentajes: list.length($porcentajes);
+    
+    //Comprueba la longitud de porcentajes es distinto al de colores
+    @if $longitud-porcentajes < $longitud-colores {
+        // En caso de ser distinto, iguala las longitudes añadiendo espacios vacios
+        @for $i from $longitud-porcentajes through $longitud-colores {
+            $porcentajes: list.append($porcentajes, "");
+        }
+        
+        //Reasigna la longitud de porcentajes
+        $longitud-porcentajes: list.length($porcentajes);
+    }
+    
+    //Variable donde se almacena el resultado
+    $resultado: null;
+    
+    //Recorre todas las posicones de colores, a excepcion de la ultima, para generar el gradiente
+    @for $i from 1 to $longitud-colores {
+       $resultado: $resultado + list.nth($colores, $i) + " " + list.nth($porcentajes, $i) + ", ";
+    }
+
+    // Añade la ultima posicion del resultado
+    $resultado: $resultado + list.nth($colores, $longitud-colores) + " " + list.nth($porcentajes, $longitud-porcentajes);
+
+    //Devuelve el resultado
+    @return $resultado;
+}

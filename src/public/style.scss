@@ -1,0 +1,88 @@
+// Archivo SCSS, para la definicion de clases predeterminadas, basada en el sistema de tailwindCSS.
+
+//Importa funciones como func
+@use "funciones" as func;
+
+//Declaracion de variables
+$red: (
+    "100": #CE3E58,
+    "300": #B4364D, 
+    "600": #9B2F42,
+    "900": #812737
+);
+
+$blue:(
+    "100": #2D88C0,
+    "300": #2777A8, 
+    "600": #226690,
+    "900": #1C5578
+);
+
+$green: (
+    "100": #56BC75,
+    "300": #4BA566, 
+    "600": #418D58,
+    "900": #367649
+);
+
+$orange:(
+    "100": #D75C2A,
+    "300": #BC5125, 
+    "600": #A1451F,
+    "900": #86391A
+);
+
+$grey:(
+    "100": #B7B7B7,
+    "300": #A0A0A0, 
+    "600": #898989,
+    "900": #727272
+);
+
+$opacity:(
+    "100": 100,
+    "75":  75, 
+    "50":  50,
+    "25":  25,
+    "0":   0
+);
+
+// Declaraciones de estilos predeterminados
+@mixin bg ($color) {
+    background-color: $color;
+}
+
+@mixin border ( $border ) {
+    
+}
+
+//Clases para los fondos
+@include func.generar-clases("bg-red",$red){
+    @include bg (func.$variableGlobal);
+}
+
+@include func.generar-clases("bg-blue",$blue){
+    @include bg (func.$variableGlobal);
+}
+
+@include func.generar-clases("bg-green",$green){
+    @include bg (func.$variableGlobal);
+}
+
+@include func.generar-clases("bg-orange",$orange){
+    @include bg (func.$variableGlobal);
+}
+
+@include func.generar-clases("bg-grey",$grey){
+    @include bg (func.$variableGlobal);
+}
+
+.bg-white{
+    @include bg( #FFF );
+}
+
+.bg-black{
+    @include bg( #000 );
+}
+
+//Clases para 
