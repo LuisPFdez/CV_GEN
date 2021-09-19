@@ -1,7 +1,9 @@
-// Archivo SCSS, para la definicion de clases predeterminadas, basada en el sistema de tailwindCSS.
-
+// Archivo SCSS, para la definicion de clases  predeterminadas, basada en el sistema de tailwindCSS.
+//Importa el modulo de maps de sass
+@use "sass:map";
 //Importa funciones como func
 @use "funciones" as func;
+//Importa el modulo 
 
 //Declaracion de variables
 $red: (
@@ -47,42 +49,280 @@ $opacity:(
     "0":   0
 );
 
+$width: (
+    "0":  0px,
+    "2":  2px, 
+    "4":  4px,
+    "6":  6px,
+    "8":  8px,
+    "10": 10px
+);
+
+$porcentajes: (
+    "full":  100%,
+    "11-12": 91.666667%, 
+    "10-12": 83.333333%,
+    "9-12":  75%,
+    "8-12":  66.666667%,
+    "7-12":  58.333333%,
+    "6-12":  50%,
+    "5-12":  41.666667%,
+    "4-12":  33.333333%,
+    "3-12":  25%,
+    "2-12":  16.666667%,
+    "1-12":  8.333333%,
+);
+
+$modos: ("normal", "hover", "focus", "active", "dasda");
+
+//-----------------------------------------------------------------------------//
 // Declaraciones de estilos predeterminados
+//Color Fondo
 @mixin bg ($color) {
     background-color: $color;
 }
+//Color Texto
+@mixin text-cl ( $color ) {
+    color: $color;
+}
 
-@mixin border ( $border ) {
+//Anchura borde
+@mixin border-with ( $px ) {
+    border-width: $px;
+}
+
+@mixin border-with-l ( $px ) {
+    border-left-width: $px;
+}
+
+@mixin border-with-t ( $px ) {
+    border-top-width: $px;
+}
+
+@mixin border-with-r ( $px ) {
+    border-right-width: $px;
+}
+
+@mixin border-with-b ( $px ) {
+    border-bottom-width: $px;
+}
+
+//Color borde
+
+@mixin border-color ( $color ){
+    border-color: $color;
+}
+
+@mixin border-grad ( $color ){
+    border-image: linear-gradient($color) 1;
+}
+
+@mixin width ( $width ) {
+    width: $width;
+}
+
+@mixin height ( $height) {
+    height: $height;
+}
+
+//-----------------------------------------------------------------------------//
+//Clases predefinidas y estilo principal
+*, body{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body{
+    height: 100%;
+}
+
+//Clase especifica para aplicar a un elemento que se situara a la izquierda
+//y que contendra la información principal
+.lateral{
+    padding: 15px;
+    background-color: map-get($red, "300" );
+    color: white;
+    float: left;
+    height: 100%;
+    width:  35%;
+    margin-right: 5px;
     
+    
+    //El & se situa unicamente con la intencion de ser mas legible
+    & hr{
+        width: 50%;
+        margin: 15px auto;
+    }
+
 }
 
+
+//-----------------------------------------------------------------------------//
 //Clases para los fondos
-@include func.generar-clases("bg-red",$red){
+@include func.generar-clases ("bg-red", $red, $modos){
     @include bg (func.$variableGlobal);
 }
 
-@include func.generar-clases("bg-blue",$blue){
+@include func.generar-clases ("bg-blue", $blue, $modos){
     @include bg (func.$variableGlobal);
 }
 
-@include func.generar-clases("bg-green",$green){
+@include func.generar-clases ("bg-green", $green, $modos){
     @include bg (func.$variableGlobal);
 }
 
-@include func.generar-clases("bg-orange",$orange){
+@include func.generar-clases ("bg-orange", $orange, $modos){
     @include bg (func.$variableGlobal);
 }
 
-@include func.generar-clases("bg-grey",$grey){
+@include func.generar-clases ("bg-grey", $grey, $modos){
     @include bg (func.$variableGlobal);
 }
 
-.bg-white{
-    @include bg( #FFF );
+@include func.generar-estados ("bg-white", $modos){
+    @include bg (#FFF);
 }
 
-.bg-black{
-    @include bg( #000 );
+@include func.generar-estados ("bg-black", $modos){
+    @include bg (#000);
 }
 
-//Clases para 
+//Degradados
+@include func.generar-estados ("bg-grad-red", $modos){
+    @include bg (linear-gradient(func.degradado($red)));
+}
+
+@include func.generar-estados ("bg-grad-blue", $modos){
+    @include bg (linear-gradient(func.degradado($blue)));
+}
+
+@include func.generar-estados ("bg-grad-gree", $modos){
+    @include bg (linear-gradient(func.degradado($green)));
+}
+
+@include func.generar-estados ("bg-grad-orange", $modos){
+    @include bg (linear-gradient(func.degradado($orange)));
+}
+
+@include func.generar-estados ("bg-grad-grey", $modos){
+    @include bg (linear-gradient(func.degradado($grey)));
+}
+
+
+//-----------------------------------------------------------------------------//
+//Clases para el color del texto
+@include func.generar-clases ("text-red", $red, $modos){
+    @include text-cl (func.$variableGlobal);
+}
+
+@include func.generar-clases ("text-blue", $blue, $modos){
+    @include text-cl (func.$variableGlobal);
+}
+
+@include func.generar-clases ("text-green", $green, $modos){
+    @include text-cl (func.$variableGlobal);
+}
+
+@include func.generar-clases ("text-orange", $orange, $modos){
+    @include text-cl (func.$variableGlobal);
+}
+
+@include func.generar-clases ("text-grey", $grey, $modos){
+    @include text-cl (func.$variableGlobal);
+}
+
+@include func.generar-estados ("text-white", $modos){
+    @include text-cl (#FFF);
+}
+
+@include func.generar-estados ("text-black", $modos){
+    @include text-cl (#000);
+}
+
+//-----------------------------------------------------------------------------//
+//Clases para el borde
+
+//Anchuras
+@include func.generar-clases ("border", $width, $modos){
+    @include border-with (func.$variableGlobal);
+}
+
+@include func.generar-clases ("border-l", $width, $modos){
+    @include border-with-l (func.$variableGlobal);
+}
+
+@include func.generar-clases ("border-t", $width, $modos){
+    @include border-with-t (func.$variableGlobal);
+}
+
+@include func.generar-clases ("border-r", $width, $modos){
+    @include border-with-r (func.$variableGlobal);
+}
+
+@include func.generar-clases ("border-b", $width, $modos) {
+    @include border-with-b (func.$variableGlobal);
+}
+
+//Colores 
+@include func.generar-clases ("border-red", $red, $modos){
+    @include border-color (func.$variableGlobal);
+}
+
+@include func.generar-clases ("border-blue", $blue, $modos){
+    @include border-color (func.$variableGlobal);
+}
+
+@include func.generar-clases ("border-green", $green, $modos){
+    @include border-color (func.$variableGlobal);
+}
+
+@include func.generar-clases ("border-orange", $orange, $modos){
+    @include border-color (func.$variableGlobal);
+}
+
+@include func.generar-clases ("border-grey", $grey, $modos){
+    @include border-color (func.$variableGlobal);
+}
+
+@include func.generar-estados ("border-white", $modos){
+    @include border-color (#FFF);
+}
+
+@include func.generar-estados ("border-black", $modos){
+    @include border-color (#000);
+}
+
+//Degradados
+@include func.generar-estados ("border-grad-red", $modos){
+    @include border-grad (func.degradado($red));
+}
+
+@include func.generar-estados ("border-grad-blue", $modos){
+    @include border-grad (func.degradado($blue));
+}
+
+@include func.generar-estados ("border-grad-green", $modos){
+    @include border-grad (func.degradado($green));
+}
+
+@include func.generar-estados ("border-grad-orange", $modos){
+    @include border-grad (func.degradado($orange));
+}
+
+@include func.generar-estados ("border-grad-grey", $modos){
+    @include border-grad (func.degradado($grey));
+}
+
+
+//-----------------------------------------------------------------------------//
+//Clases para el alto y ancho
+
+@include func.generar-clases("w", map.merge($porcentajes, ("auto": "auto")), $modos){
+    @include width(func.$variableGlobal);
+}
+
+@include func.generar-clases("h", map.merge($porcentajes, ("auto": "auto")), $modos){
+    @include height(func.$variableGlobal);
+}
+
