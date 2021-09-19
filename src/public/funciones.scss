@@ -3,20 +3,47 @@
 
 $variableGlobal: null;
 
-//Permite generar clases a partir de un map
-@mixin generar-clases ($nombre, $valores) {
-    //Comprueba que el 
-    @if type-of($valores) != 'map' {
-        @error "El valor de $valores ha de ser un map";
+//Permite generar clases a partir de un map, recibe el nombre, los valores (map) y los tipos (list), para generar 
+//otros tipos de clases, por ejemplo el hover
+@mixin generar-clases ($nombre, $valores, $tipos:( "normal", "hover" ) ) {
+    //Comprueba que $valores sea un map y $tipos sea una lista
+    @if type-of($valores) != 'map' or type-of($tipos) != 'list'{
+        @error "El valor de $valores ha de ser un map y $tipos un list";
     }
 
-    @each $nom, $valor in $valores {
-        $variableGlobal: $valor !global;
-        .#{$nombre}-#{$nom} {
-            @content;
+    //Comprueba si $tipos contiene el valor "normal"
+    @if "normal" in $tipos {
+        //Recorre todos los valores del map
+        @each $nom, $valor in $valores {
+            //Almacena el valor del map en la variable global
+            $variableGlobal: $valor !global;
+            //Genera el nombre en base al nombre pasado por parametro y la llave de la propiedad
+            .#{$nombre}-#{$nom} {
+                //Contenido pasado en la llamada
+                @content;
+            }
         }
     }
-    
+
+    //Tipos expeciales admitidos
+    $tipos-admitidos: ("hover", "focus", "active");
+
+    //Recorre la lista de los tipos
+    @each $tipo in $tipos {
+        //Comprueba si el tipo se encuentra en la lista de tipos admitidos
+        @if $tipo in $tipos-admitidos {
+            //Recorre todos los valores del map
+            @each $nom, $valor in $valores {
+                //Almacena el valor del map en la variable global
+                $variableGlobal: $valor !global;
+                //Genera el nombre en base al nombre pasado por parametro y la llave de la propiedad
+                .#{tipo}\:#{$nombre}-#{$nom}:#{tipo} {
+                    //Contenido pasado en la llamada
+                    @content;
+                }
+            }
+        }
+    }
 }
 
 //Funcion para generar un degradado de forma automatica en base a los parametros
