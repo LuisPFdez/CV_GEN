@@ -2,9 +2,39 @@
 @use "sass:list";
 
 $variableGlobal: null;
+//Tipos expeciales admitidos para los estados
+$tipos-admitidos: ("hover", "focus", "active");
+
+//Genera clases y les permite generar esta
+@mixin generar-estados ($nombre, $tipos:( "normal", "hover" )) {
+    //Comprueba que $tipos sea una lista
+    @if type-of($tipos) != 'list'{
+        @error "El valor de $tipos ha de ser un list";
+    }
+    //Comprueba si $tipos contiene el valor "normal"
+    @if list.index($tipos, "normal") != null {
+        //Crea la clase con el nombre
+        .#{$nombre}{
+            //Contenido pasado en la llamada
+            @content;
+        }
+    } 
+
+    //Recorre la lista de los tipos
+    @each $tipo in $tipos {
+        //Comprueba si el tipo se encuentra en la lista de tipos admitidos
+        @if list.index($tipos-admitidos, $tipo) != null {
+            //Crea la clase apartir del el tipo y le asigna el tipo
+            .#{$tipo}\:#{$nombre}:#{$tipo}{
+                //Contenido pasado en la llamada
+                @content;
+            }
+        }
+    }
+}
 
 //Permite generar clases a partir de un map, recibe el nombre, los valores (map) y los tipos (list), para generar 
-//otros tipos de clases, por ejemplo el hover
+//otros tipos de clases (similar a generar-estados), por ejemplo el hover. Por motivos de rendimiento no usa generar-estados 
 @mixin generar-clases ($nombre, $valores, $tipos:( "normal", "hover" ) ) {
     //Comprueba que $valores sea un map y $tipos sea una lista
     @if type-of($valores) != 'map' or type-of($tipos) != 'list'{
@@ -12,7 +42,7 @@ $variableGlobal: null;
     }
 
     //Comprueba si $tipos contiene el valor "normal"
-    @if "normal" in $tipos {
+    @if list.index($tipos, "normal") != null {
         //Recorre todos los valores del map
         @each $nom, $valor in $valores {
             //Almacena el valor del map en la variable global
@@ -25,19 +55,16 @@ $variableGlobal: null;
         }
     }
 
-    //Tipos expeciales admitidos
-    $tipos-admitidos: ("hover", "focus", "active");
-
     //Recorre la lista de los tipos
     @each $tipo in $tipos {
         //Comprueba si el tipo se encuentra en la lista de tipos admitidos
-        @if $tipo in $tipos-admitidos {
+        @if list.index($tipos-admitidos, $tipo) != null {
             //Recorre todos los valores del map
             @each $nom, $valor in $valores {
                 //Almacena el valor del map en la variable global
                 $variableGlobal: $valor !global;
                 //Genera el nombre en base al nombre pasado por parametro y la llave de la propiedad
-                .#{tipo}\:#{$nombre}-#{$nom}:#{tipo} {
+                .#{$tipo}\:#{$nombre}-#{$nom}:#{$tipo} {
                     //Contenido pasado en la llamada
                     @content;
                 }
