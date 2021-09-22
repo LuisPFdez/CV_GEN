@@ -1,6 +1,6 @@
 <!-- Curriculum de ejemplo -->
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="A4">
 
 <head>
     <meta charset="UTF-8">
@@ -8,77 +8,109 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Curriculum 1</title>
     <link rel="stylesheet" href="style.css">
+    
 </head>
 
 <body>
-    <nav  ="lateral"> 
-        <h1>Datos Personales</h1>
+    <nav  class="lateral"> 
+        <section class="header">Datos Personales</section>
         <img>
-        {{#IDB Datos 'NOM'}}
-            <b>{{Nombre}} </b>
-            {{Descripcion}}
-            <hr>
-        {{/IDB}}
-        {{#IT-IF Datos 'ID' '!=' 'NOM'}}
-            <b>{{Nombre}}</b>
-            {{Descripcion}}
-            <br>
-        {{/IT-IF}}
-        <hr>
-        {{#IT Idiomas}}
-            {{Idioma}}, 
-            {{Nivel}}
-            {{#if Centro}}
-                <br>
-                {{Centro}}
-            {{/if}}
-            <br>
-        {{/IT}}
+        <section class="especial-1">
+            {{#IDB Datos 'NOM'}}
+                <span class="destacado">{{Nombre}} </span>
+                {{Descripcion}}  
+            {{/IDB}}
+        </section>
+        <hr class="separador">
+        <section>
+            <ul class="lista-1">    
+                {{#IT-IF Datos 'ID' '!=' 'NOM'}}
+                    <li>
+                        <span class="destacado">{{Nombre}}</span>
+                        {{Descripcion}}
+                        <br>
+                    </li>
+                {{/IT-IF}}
+            </ul>
+        </section>
+        <hr class="separador">
+        <section>
+            <ul class="lista-1">
+                {{#IT Idiomas}}
+                    <li>
+                        <span class="destacado">{{Idioma}}</span>, 
+                        {{Nivel}}
+                        {{#if Centro}}
+                            <br>
+                            {{Centro}}
+                        {{/if}}
+                    <br>
+                    </li>
+                {{/IT}}
+            </ul>
+        </section>
     </nav>
-    <main>
-        <hr>
-        <section>
+    <main class="principal">
+        <section class="seccion">
+            <h2>Formacion</h2>
+            <ul class="lista-1">
             {{#IT Formacion }}
-            <a
-             {{#if Link }}
-               href="{{Link}}"
-            {{/if}}
-            >{{Titulo}}</a>, {{Fecha_inicial}} / {{Fecha_fin}}
-            <br>
-            <!-- La funcion if por defecto de handlebars no permite el operador "and" por 
-            lo que es necesario un doble condiciona anidado-->
-            {{Centro}} {{#if Centro }} {{#if Ciudad }} - {{/if}} {{/if}} {{Ciudad}}
-            <br>
+                <li>
+                    <a
+                    {{#if Link }}
+                    href="{{Link}}"
+                    {{/if}}
+                    >{{Titulo}}</a>, {{Fecha_inicial}} / {{Fecha_fin}}
+                    <br>
+                    <!-- La funcion if por defecto de handlebars no permite el operador "and" por 
+                    lo que es necesario un doble condiciona anidado-->
+                    {{Centro}} {{#if Centro }} {{#if Ciudad }} - {{/if}} {{/if}} {{Ciudad}}
+                    <br>
+                </li>
             {{/IT}}
+            </ul>
         </section>
-        <hr>
-        <section>
+        
+        <section class="seccion">
+            <h2>Experiencia</h2>
+            <ul class="lista-1">
             {{#IT Experiencia }}
-            <a
-             {{#if Link }}
-               href="{{Link}}"
-            {{/if}}
-            >{{Empresa}}</a>, {{Fecha_inicial}} / {{Fecha_fin}}
-            <br>
-            <!-- La funcion if por defecto de handlebars no permite el operador "and" por 
-            lo que es necesario un doble condiciona anidado-->
-            {{Funcion}} {{#if Funcion }} {{#if Ciudad }} - {{/if}} {{/if}} {{Ciudad}}
-            <br>
+                <li>
+                    <a
+                    {{#if Link }}
+                    href="{{Link}}"
+                    {{/if}}
+                    >{{Empresa}}</a>, {{Fecha_inicial}} / {{Fecha_fin}}
+                    <br>
+                    <!-- La funcion if por defecto de handlebars no permite el operador "and" por 
+                    lo que es necesario un doble condiciona anidado-->
+                    {{Funcion}} {{#if Funcion }} {{#if Ciudad }} - {{/if}} {{/if}} {{Ciudad}}
+                    <br>
+                </li>
             {{/IT}}
+            </ul>
         </section>
-        <hr>
-        <section>
+        <section class="seccion">
+            <h2>Habilidades</h2>
+            <ul class="lista-1">
             {{#IT Habilidades}}
-                <b>{{Nombre}}</b> {{#if Descripcion}},{{/if}} {{Descripcion}}
-            <br>
+                <li>
+                    <span class="destacado">{{Nombre}}</span> {{#if Descripcion}},{{/if}} {{Descripcion}}
+                    <br>
+                </li>
             {{/IT}}
+            </ul>
         </section>
-        <hr>
-        <section>
+        <section class="seccion">
+            <h2>Adicional</h2>
+            <ul class="lista-1">
             {{#IT Adicional}}
-                <b>{{Nombre}}</b> {{#if Descripcion}},{{/if}} {{Descripcion}}
-            <br>
+                <li>
+                    <span class="destacado">{{Nombre}}</span> {{#if Descripcion}},{{/if}} {{Descripcion}}
+                    <br>
+                </li>
             {{/IT}}
+            </ul>
         </section>
     </main>
 </body>

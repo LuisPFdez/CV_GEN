@@ -76,6 +76,135 @@ $porcentajes: (
 $modos: ("normal", "hover", "focus", "active", "dasda");
 
 //-----------------------------------------------------------------------------//
+//Clases predefinidas y estilo principal
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Garamond';
+}
+
+html{
+    margin: 0 auto;
+    // overflow-x: scroll;
+    overflow-y: hidden;
+    // background-color: green;
+    &, body{
+        height: 100%;
+    }
+}
+
+.A4{
+    // Anchura recomendada 800px
+    // Altura recomendada 750px
+    max-width: 800px;
+    width: auto;
+    height: 100%;
+    background-color: map-get($grey, "600" );
+    & body{
+        background-color: white;
+    }
+
+    body{
+        display: flex;
+        flex-direction: row;
+    }
+}
+
+//Clase especifica para aplicar a un elemento que se situara a la izquierda
+//y que contendra la información principal
+.lateral{
+    padding: 15px;
+    background-color: map-get($red, "300" );
+    color: white;
+    height: 100%;
+    width:  35%;
+    min-width: 250px;
+    margin-right: 5px;
+    display: grid;
+    grid-auto-flow: row;
+    align-content: center;
+    gap: 5px;
+    
+    //El & se situa unicamente con la intencion de ser mas legible
+    & hr{
+        width: 50%;
+        margin: 15px auto;
+    }
+
+    & section{
+        margin: 15px 0;
+        // border: #000 solid 2px;
+
+        &:first-of-type{
+            margin: 0;
+        }
+
+        &:last-of-type{
+            margin-bottom: 0;
+        }
+    }
+
+    & .header{
+        border-bottom: #000 2px solid;
+        padding: 5px;
+        width: 100%;
+        font-size: xx-large;
+        text-align: center;
+    }
+}
+
+.principal{
+    background-color: inherit;
+    width: auto;
+    min-width: 210px;
+    padding: 15px;
+    display: grid;
+    grid-auto-flow: row;
+    align-content: center;
+    gap: 15px;
+}
+
+.especial-1{
+    & span.destacado{
+        font-weight: bold;
+        font-size: 1.25em;
+        text-transform: initial;
+    }
+
+    text-align: center;
+    text-transform: capitalize;
+    font-variant: small-caps;
+}
+
+ol.lista-1, ul.lista-1{
+    list-style: none;
+    
+    li{
+        margin-bottom: 8px;
+    
+        & a, & .destacado{
+            font-weight: bold;
+            font-size: 1.05em;
+        }
+
+        & a[href] {
+            color: inherit;
+        }
+
+        &:last-of-type{
+            margin-bottom: 0;
+        }
+    }
+}
+
+.seccion{
+    h2{
+        border-bottom: map-get($blue, "900") 2px solid;
+    }
+}
+
+//-----------------------------------------------------------------------------//
 // Declaraciones de estilos predeterminados
 //Color Fondo
 @mixin bg ($color) {
@@ -124,39 +253,6 @@ $modos: ("normal", "hover", "focus", "active", "dasda");
 @mixin height ( $height) {
     height: $height;
 }
-
-//-----------------------------------------------------------------------------//
-//Clases predefinidas y estilo principal
-*, body{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-html, body{
-    height: 100%;
-}
-
-//Clase especifica para aplicar a un elemento que se situara a la izquierda
-//y que contendra la información principal
-.lateral{
-    padding: 15px;
-    background-color: map-get($red, "300" );
-    color: white;
-    float: left;
-    height: 100%;
-    width:  35%;
-    margin-right: 5px;
-    
-    
-    //El & se situa unicamente con la intencion de ser mas legible
-    & hr{
-        width: 50%;
-        margin: 15px auto;
-    }
-
-}
-
 
 //-----------------------------------------------------------------------------//
 //Clases para los fondos
