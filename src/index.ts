@@ -52,11 +52,8 @@ app.get("/ddbb_json", bodyDefinido, async (req: Request, res: Response) => {
 
         const plantilla: string = <string> req.query.plantilla || plantillaPre;
         
-        console.log(plantilla);
-
         const html = await json_a_html(await ddbb_a_json(DB_CONFIG), "ID", rutaPlantillas + plantilla);
-        // return respuesta(res, html, 200);
-        res.send(html)
+        return respuesta(res, html, 200);
 
     } catch (e) {
         return respuesta(res, "Fallo al renderizar el mensaje. Error: " + (<Error>e).message, 500);
