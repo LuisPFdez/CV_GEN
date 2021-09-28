@@ -3,6 +3,7 @@ import { existsSync, lstatSync, readFileSync, } from "fs"
 import Handlebars from "handlebars";
 import { join, resolve } from "path"
 import {ArchivoNoEncontrado} from "../errors/ArchivoNoEncontrado"
+import { ErrorRenderizado } from "../errors/ErrorRenderizado";
 
 /**
  Tipo que definie un objecto compuesto por un string como clave y un array como valor, el array a su vez se compone de otro objeto
@@ -129,7 +130,7 @@ export class Render {
 
         //Comprueba si la ruta existe y es un archivo, en caso de que alguna de las opciones no se cumpla lanza un error
         if (!existsSync(plantilla) || !lstatSync(plantilla).isFile()) {
-            throw new ArchivoNoEncontrado("Error, la plantilla no existe");
+            throw new ArchivoNoEncontrado("Error, la plantilla no existe", 400);
         }
 
         //Devuelve la ruta de la plantilla (ruta absoluta)
@@ -170,8 +171,8 @@ export class Render {
             return (Handlebars.compile(plantilla, opciones))(this._datos);
         }
         catch (e) {
-            //En caso de error al renderizar devuelve un mensaje con el mensaje de error
-            return "Error al generar la plantilla:\n " +(<Error> e).message;
+            //En caso de error al renderizar lanza una excepcion
+            throw new ErrorRenderizado("Error al generar la plantilla: " + (<Error> e).message, 500);
         }
     }
 
@@ -199,8 +200,8 @@ export class Render {
             return (Handlebars.compile(datos, opciones))(this._datos);
         }
         catch (e) {
-            //En caso de error al renderizar devuelve un mensaje con el mensaje de error
-            return "Error al generar la plantilla:\n " + (<Error> e).message;
+            //En caso de error al renderizar lanza una excepcion
+            throw new ErrorRenderizado("Error al generar la plantilla: " + (<Error> e).message, 500);
         }
     }
 }

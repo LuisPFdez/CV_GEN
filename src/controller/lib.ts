@@ -5,6 +5,7 @@ import { Render, MDatos } from "./render";
 import { SpawnOptions, spawnSync } from "child_process";
 import { createConnection, ConnectionConfig, MysqlError } from "mysql"
 import { promisify } from "util";
+import { ErrorMysql } from "../errors/ErrorMysql";
 
 /**
  * Funcion que se encarga de convertir los datos de las tablas de una base de datos a json
@@ -40,7 +41,7 @@ async function ddbb_a_json(config: ConnectionConfig, esquema?: string[]): Promis
             }
         }).catch((error: MysqlError) => {
             //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
-            throw new Error("Error (" + error.name + "): " + error.message);
+            throw new ErrorMysql("Error (" + error.name + "): " + error.message, 500);
         }));
     });
     //Espera a que todas las consultas de la base de datos terminen
