@@ -1,7 +1,7 @@
 /**
  * @file Archivo que permite el procesado de datos, como convertir datos de una base de datos a JSON o un HTML en PDF
  */
-import { Render, MDatos } from "../model/render";
+import { Render, MDatos } from "./render";
 import { SpawnOptions, spawnSync } from "child_process";
 import { createConnection, ConnectionConfig, MysqlError } from "mysql"
 import { promisify } from "util";
