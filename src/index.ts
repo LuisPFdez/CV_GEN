@@ -1,18 +1,12 @@
 import 'dotenv/config';
 
-import { bodyDefinido } from "./controller/serv";
+import { bodyDefinido, respuesta } from "./controller/serv";
 import { json_a_html, ddbb_a_json } from "./controller/lib";
 
 import express, { Express, Request, Response } from "express";
 import { ConnectionConfig } from 'mysql';
 
 const app: Express = express();
-
-const respuesta = (res: Response, mensaje: string, codigoError: number) => {
-    res.status(codigoError).json(
-        { mensaje: mensaje, codigoError: codigoError }
-    );
-};
 
 const DB_CONFIG: ConnectionConfig = {
     database: process.env.DB_DATABASE,
@@ -30,14 +24,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname + "/public"));
 
 
-app.post("/json_html", bodyDefinido, async (req: Request, res: Response) => {
+app.post("/json_html", bodyDefinido, async (req: Request, res: Response): Promise<Response> => {
     if (req.body.mensaje) {
 
         const id: string = req.body.id || "ID";
         const plantilla: string = req.body.plantilla || plantillaPre;
 
         try {
-            const html = await json_a_html(req.body.mensaje, id, rutaPlantillas + plantilla );
+            const html = await json_a_html(req.body.mensaje, id, rutaPlantillas + plantilla);
             return respuesta(res, html, 200);
         } catch (e) {
             return respuesta(res, "Fallo al renderizar el mensaje. Error" + (<Error>e).message, 500);
@@ -47,11 +41,11 @@ app.post("/json_html", bodyDefinido, async (req: Request, res: Response) => {
     }
 });
 
-app.get("/ddbb_json", bodyDefinido, async (req: Request, res: Response) => {
+app.get("/ddbb_json", bodyDefinido, async (req: Request, res: Response): Promise<Response> => {
     try {
 
-        const plantilla: string = <string> req.query.plantilla || plantillaPre;
-        
+        const plantilla: string = <string>req.query.plantilla || plantillaPre;
+
         const html = await json_a_html(await ddbb_a_json(DB_CONFIG), "ID", rutaPlantillas + plantilla);
         return respuesta(res, html, 200);
 
@@ -60,11 +54,11 @@ app.get("/ddbb_json", bodyDefinido, async (req: Request, res: Response) => {
     }
 });
 
-app.get("/json", bodyDefinido, async (req: Request, res: Response) => {
+app.get("/json", bodyDefinido, async (req: Request, res: Response): Promise<Response> => {
     try {
 
         const json = await ddbb_a_json(DB_CONFIG);
-        return res.send(json);
+        return respuesta(res, json, 200);
 
     } catch (e) {
         return respuesta(res, "Fallo al renderizar el mensaje. Error: " + (<Error>e).message, 500);
