@@ -3,7 +3,7 @@
  */
 import { Render, MDatos } from "./render";
 import { SpawnOptions, spawnSync } from "child_process";
-import { createConnection, ConnectionConfig, MysqlError } from "mysql"
+import { createConnection, ConnectionConfig, MysqlError } from "mysql";
 import { promisify } from "util";
 import { ErrorMysql } from "../errors/ErrorMysql";
 
@@ -35,7 +35,7 @@ async function ddbb_a_json(config: ConnectionConfig, esquema?: string[]): Promis
         queries.push(query(stat).then((datos) => {
             //En caso de que se ejecute correctamente se almacenan todos los datos en la prpiedad correspondiente
             json[tabla] = [];
-            for (var valor of datos as []) { //Recorre el array de datos, cada posicion corresponde a una linea de la tabla
+            for (const valor of datos as []) { //Recorre el array de datos, cada posicion corresponde a una linea de la tabla
                 //Añade el objeto que correponde a la fila, para eliminar RowDataPacket del objeto, se pasa a string y luego a JSON
                 json[tabla].push(JSON.parse(JSON.stringify(valor)));
             }
@@ -81,7 +81,7 @@ async function html_a_pdf(argumentos: Array<string>, opciones: SpawnOptions = {}
     };
 
     //Ejecuta un subproceso, si no han ninguna variable de entorno ejecuta el programa por defecto, wkhtmltopdf
-    const proceso = spawnSync(process.env.PDF_PROG || "wkhtmltopdf", argumentos, opciones);
+    const proceso = spawnSync(process.env.PDF_PROG!, argumentos, opciones);
 
     //Al finalizar compruba si la apliacion ha tenido algun error al ejecutarse o el programa ha salido un codigo distinto de 0
     if (proceso.error) {

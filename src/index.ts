@@ -8,26 +8,26 @@ import { ConnectionConfig } from 'mysql';
 
 const app: Express = express();
 
-const respuesta = (res: Response, mensaje: String, codigoError: number) => {
+const respuesta = (res: Response, mensaje: string, codigoError: number) => {
     res.status(codigoError).json(
         { mensaje: mensaje, codigoError: codigoError }
     );
-}
+};
 
 const DB_CONFIG: ConnectionConfig = {
     database: process.env.DB_DATABASE,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     host: process.env.DB_HOST
-}
+};
 
-const rutaPlantillas = "dist/templates/"
+const rutaPlantillas = "dist/templates/";
 const plantillaPre = "temp1.hbs";
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }))
+app.use(express.urlencoded({ extended: true }));
 
-app.use(express.static(__dirname + "/public"))
+app.use(express.static(__dirname + "/public"));
 
 
 app.post("/json_html", bodyDefinido, async (req: Request, res: Response) => {
@@ -58,7 +58,7 @@ app.get("/ddbb_json", bodyDefinido, async (req: Request, res: Response) => {
     } catch (e) {
         return respuesta(res, "Fallo al renderizar el mensaje. Error: " + (<Error>e).message, 500);
     }
-})
+});
 
 app.get("/json", bodyDefinido, async (req: Request, res: Response) => {
     try {
@@ -69,7 +69,7 @@ app.get("/json", bodyDefinido, async (req: Request, res: Response) => {
     } catch (e) {
         return respuesta(res, "Fallo al renderizar el mensaje. Error: " + (<Error>e).message, 500);
     }
-})
+});
 
 
 app.listen(process.env.PORT);

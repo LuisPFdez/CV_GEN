@@ -1,8 +1,8 @@
 
-import { existsSync, lstatSync, readFileSync, } from "fs"
+import { existsSync, lstatSync, readFileSync, } from "fs";
 import Handlebars from "handlebars";
-import { join, resolve } from "path"
-import {ArchivoNoEncontrado} from "../errors/ArchivoNoEncontrado"
+import { join, resolve } from "path";
+import {ArchivoNoEncontrado} from "../errors/ArchivoNoEncontrado";
 import { ErrorRenderizado } from "../errors/ErrorRenderizado";
 
 /**
@@ -21,7 +21,6 @@ export class Render {
     private _plantilla: string;
     private _id: string;
     /**
-     * Constructor de la clase
      * @param datos MDatos, objeto de determinadas caracteristicas
      * @param id String, identificador del grupo de datos
      * @param plantilla String, ruta de la plantilla que se va a renderizar
@@ -56,10 +55,10 @@ export class Render {
             if (objeto === undefined || !Array.isArray(objeto)) return "La tabla no existe o no es un array de objetos";
 
             //Declara la respuesta
-            let res: string = "";
+            let res = "";
 
             //Itera el objeto
-            for (let obj of objeto) {
+            for (const obj of objeto) {
                 //Concatena el objeto renderizado a la respuesta
                 res += options.fn(obj);
             }
@@ -77,10 +76,10 @@ export class Render {
             if (objeto === undefined || !Array.isArray(objeto)) return "La tabla no existe o no es un array de objetos";
 
             //Declara la respuesta
-            let res: string = "";
+            let res = "";
 
             //Itera el array, las veces determinadas por parametro (en caso de ser un numero mayor al de objetos del array, el numero de estos seran el limite)
-            for (var i = 0; i < nIterador && i < objeto.length; i++) {
+            for (let i = 0; i < nIterador && i < objeto.length; i++) {
                 //Concatena el objeto renderizado a la respuesta
                 res += options.fn(objeto[i]);
             }
@@ -99,10 +98,10 @@ export class Render {
             if (objeto === undefined || !Array.isArray(objeto)) return "La tabla no existe o no es un array de objetos";
 
             //Declara la respuesta
-            let res: string = "";
+            let res = "";
 
             //Itera el array 
-            for (let obj of objeto) {
+            for (const obj of objeto) {
                 //Funcion para evaluar la expresion compuesta, por ejemplo, return 'obj["Ciudad"]' != 'Ciudad1'
                 const eva = new Function(`return '${obj[campo]}' ${comparador} '${valor}'`);
                 //Ejecuta la funcion, la cual devuelve la expresion y es evaluada
@@ -194,7 +193,7 @@ export class Render {
             } else {
                 //En caso de no haber pasado la ruta por parametro, lee el contenido de la ruta de la clase, y lo almacena en la variable datos
                 datos = readFileSync(this._plantilla).toString();
-            };
+            }
 
             //Devuelve la plantilla renderizada
             return (Handlebars.compile(datos, opciones))(this._datos);
