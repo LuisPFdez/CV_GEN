@@ -13,7 +13,7 @@ import { ErrorMysql } from "../errors/ErrorMysql";
  * @param esquema String[], tablas de la base de datos de las cuales se obtendran los datos
  * @returns MDatos, json con los datos de la base de datos
  */
-async function ddbb_a_json(config: ConnectionConfig, esquema?: string[]): Promise<MDatos> {
+async function bbdd_a_json(config: ConnectionConfig, esquema?: string[]): Promise<MDatos> {
     //El modelo permite definir en que tablas se ha de buscar
     const modelo = esquema || ["Adicional", "Datos", "Experiencia", "Formacion", "Habilidades", "Idiomas"];
     //JSON que será devuelto, contiene la informacion de la base de datos en forma JSON;
@@ -30,7 +30,7 @@ async function ddbb_a_json(config: ConnectionConfig, esquema?: string[]): Promis
     //Recorre todas las tablas del modelo
     modelo.forEach((tabla) => {
         //Query para cada tabla;
-        const stat = "Select * from " + tabla;
+        const stat = `Select * from ${tabla}`;
         //Se añade la consula al array de consultas
         queries.push(query(stat).then((datos) => {
             //En caso de que se ejecute correctamente se almacenan todos los datos en la prpiedad correspondiente
@@ -97,4 +97,4 @@ async function html_a_pdf(argumentos: Array<string>, opciones: SpawnOptions = {}
 
 }
 
-export { ddbb_a_json, json_a_html, html_a_pdf };
+export { bbdd_a_json, json_a_html, html_a_pdf };
