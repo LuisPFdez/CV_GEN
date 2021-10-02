@@ -5,10 +5,11 @@
   "main": "index.js",
   "scripts": {
     "start": "node dist/",
-    "build": "tsc && npm run build:css && npm run copy",
+    "build": "npm run tsc && npm run build:css && npm run copy",
+    "build:ts": "tsc && npm run lint",
     "build:css": "sass --no-source-map src/public/style.scss:dist/public/style.css --style compressed",
     "copy": "copyfiles -u 1 src/**/* -e '**/*.ts' -e '**/*.scss' dist/",
-    "lint": "eslint --ext .ts src/ --no-error-on-unmatched-pattern"
+    "lint": "eslint --no-error-on-unmatched-pattern --ext .ts src/"
   },
   "author": "LuisPFdez",
   "license": "MIT",
