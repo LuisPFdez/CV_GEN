@@ -1,5 +1,5 @@
-import { resolve, join, extname } from "path";
-import { accessSync, appendFileSync, existsSync, lstatSync, writeFileSync } from "fs";
+import { resolve, join, extname, basename } from "path";
+import { accessSync, appendFileSync, existsSync, lstatSync } from "fs";
 import { R_OK, W_OK } from "constants";
 
 declare global {
@@ -96,7 +96,8 @@ export class Logger {
      * %{M} - Muestra el mes,
      * %{Y} - Muestra el año,
      * %{T} - Muestra el tipo de log
-     * %{A} - Muestra el modulo donde ha saltado el error o se ha llamado al metodo,
+     * %{T} - Muestra el modulo donde ha saltado el error o se ha llamado al metodo,
+     * %{A} - Muestra el archivo donde ha saltado el error o se ha llamado al metodo,
      * %{R} - Muestra el mensaje pasado al metodo,
      * %{L} - Muestra la linea donde ha saltado el error o se ha llamado al metodo,
      * %{N} - Muestra el nombre del error,
@@ -107,7 +108,7 @@ export class Logger {
      * %{CM} - Pinta de color amarillo (Consola),
      * %{CF} - Marca el fin de coloreado
      */
-    constructor(fichero: string = "logger.log", formato: string = "(%{T})[%{H}:%{i}] - %{R}", formato_error: string = "(%{T})[%{H}:%{i}]( %{N},%{L} - {%{E};%{A}}) - %{R}", ruta: string = "./") {
+    constructor(fichero: string = "logger.log", formato: string = "(%{T})[%{H}:%{i}] - %{R}", formato_error: string = "(%{T})[%{H}:%{i}]( %{N} {%{F},%{L}} [%{E}] - {%{A}}) - %{R}", ruta: string = "./") {
         //
         this._ruta = this.comprobar_ruta(ruta);
         this._fichero = this.comprobar_fichero(fichero);
@@ -124,6 +125,7 @@ export class Logger {
 
     set ruta(ruta: string) {
         this._ruta = this.comprobar_ruta(ruta);
+        this._fichero = this.comprobar_fichero(basename(this._fichero));
     }
 
     get fichero(): string {
@@ -299,9 +301,6 @@ export class Logger {
             }
         }
 
-        //En caso de no existir el fichero crea uno vacio
-        writeFileSync(fichero, "");
-
         //Devuelve el fichero
         return fichero;
 
@@ -411,7 +410,7 @@ export class Logger {
     private archivo<E extends Error>(tipo: string, msg: string, config: LoggerConfig, error: E): void {
         //Guarda en variables las propiedades del objeto devuelto por obtener_datos_stack
         const { archivo, linea, nombre_error, mensaje_error, funcion } = this.obtener_datos_stack(error);
-    
+
         //Comprueba si error es instancia (directa) de Error
         //En caso de que el error, utilizado entre otras cosas para saber desde donde se llama al metodo, sea 
         //distinto de Error, valor por defecto
@@ -426,7 +425,7 @@ export class Logger {
             AMARILLO: "",
             AZUL: ""
         });
-    
+
         //Renderiza la plantilla pasandole los valores que han de ser sustituidos
         //Como devuelve una funcion, la convierte a string
         const plantilla = (formato.compilarPlantilla({
@@ -441,7 +440,7 @@ export class Logger {
         })).toString();
 
         //Añade al final del archivo el mensaje
-        appendFileSync(this._fichero, plantilla);
+        appendFileSync(this._fichero, plantilla + "\n");
     }
 
     /**
