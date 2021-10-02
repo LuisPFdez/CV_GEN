@@ -96,18 +96,18 @@ export class Logger {
      * %{M} - Muestra el mes,
      * %{Y} - Muestra el año,
      * %{T} - Muestra el tipo de log
-     * %{N} - Muestra el nombre del error,
-     * %{E} - Muestra el mensaje del error,
      * %{A} - Muestra el modulo donde ha saltado el error o se ha llamado al metodo,
      * %{R} - Muestra el mensaje pasado al metodo,
      * %{L} - Muestra la linea donde ha saltado el error o se ha llamado al metodo,
+     * %{N} - Muestra el nombre del error,
+     * %{E} - Muestra el mensaje del error,
      * %{CR} - Pinta de color rojo (Consola),
      * %{CA} - Pinta de color azul (Consola),
      * %{CV} - Pinta de color verde (Consola),
      * %{CM} - Pinta de color amarillo (Consola),
      * %{CF} - Marca el fin de coloreado
      */
-    constructor(fichero: string = "logger.log", formato: string = "", formato_error: string = "", ruta: string = "./") {
+    constructor(fichero: string = "logger.log", formato: string = "(%{T})[%{H}:%{i}] - %{R}", formato_error: string = "(%{T})[%{H}:%{i}]( %{N},%{L} - {%{E};%{A}}) - %{R}", ruta: string = "./") {
         //
         this._ruta = this.comprobar_ruta(ruta);
         this._fichero = this.comprobar_fichero(fichero);
@@ -165,15 +165,16 @@ export class Logger {
         formato = formato.replace(new RegExp("%{M}", "g"), "${new Date().getMonth()}");
         formato = formato.replace(new RegExp("%{Y}", "g"), "${new Date().getFullYear()}");
 
-        //Da informacion del error
+        //Informacion general
         //Tipo de log ( error, log, info)
         formato = formato.replace(new RegExp("%{T}", "g"), "${tipo}");
-        formato = formato.replace(new RegExp("%{N}", "g"), "${nombre_error}");
-        formato = formato.replace(new RegExp("%{E}", "g"), "${mensaje_error}");
         formato = formato.replace(new RegExp("%{F}", "g"), "${funcion}");
         formato = formato.replace(new RegExp("%{A}", "g"), "${archivo}");
         formato = formato.replace(new RegExp("%{R}", "g"), "${mensaje}");
         formato = formato.replace(new RegExp("%{L}", "g"), "${linea}");
+        //Informacion de los errores
+        formato = formato.replace(new RegExp("%{N}", "g"), "${nombre_error}");
+        formato = formato.replace(new RegExp("%{E}", "g"), "${mensaje_error}");
 
 
         //Colores
