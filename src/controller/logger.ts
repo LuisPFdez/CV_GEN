@@ -108,7 +108,7 @@ export class Logger {
      * %{CM} - Pinta de color amarillo (Consola),
      * %{CF} - Marca el fin de coloreado
      */
-    constructor(fichero: string = "logger.log", formato: string = "(%{T})[%{H}:%{i}] - %{R}", formato_error: string = "(%{T})[%{H}:%{i}]( %{N} {%{F},%{L}} [%{E}] - {%{A}}) - %{R}", ruta: string = "./") {
+    constructor(fichero: string = "logger.log", formato: string = "(%{T})[%{D}-%{M}-%{Y}, %{H}:%{i}] - %{R}", formato_error: string = "(%{T})[%{D}-%{M}-%{Y}, %{H}:%{i}]( %{N} {%{F},%{L}} [%{E}] - {%{A}}) - %{R}", ruta: string = "./") {
         //
         this._ruta = this.comprobar_ruta(ruta);
         this._fichero = this.comprobar_fichero(fichero);
