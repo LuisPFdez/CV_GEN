@@ -116,6 +116,61 @@ export class Render {
 
         });
         
+        /**
+         * Funcion para iterar todos los objetos que cumplan varias condiciones, el numero parametros del array hay de ser multiplo de tres, mas uno, que indica se cada grupo el tipo de operador.
+         * Las condiciones han de ser por grupos de tres, el primer valor de ese grupo ha de ser la propiedad, el segundo valor la condicion y el tercer valor 
+         */
+         Handlebars.registerHelper("IT-IFM", (objeto, ...args): string => {
+            //Comprueba que el objeto no sea undefined o no sea un array
+            if (objeto === undefined || !Array.isArray(objeto)) return "La tabla no existe o no es un array de objetos";
+
+            //Declara la respuesta
+            let res = "";
+            //Extrae el ultimo elemento del array, que es la funcion de options, pasada automaticamente por handlebars
+            const options = args.slice(-1)[0];
+            //Extrae todos los demas argumentos 
+            let condicionales = args.slice(0, -1);
+            
+            //Comprueba si la longitud de los condicionales 
+            if ( (condicionales.length - 1) % 3 != 0) {
+                //Devuelve un mensaje de error
+                return "El objecto con los condicionales ha de ser una array y cada condicional dividirse en tres, mas el primer elemento indicando el tipo";
+            }
+            
+            //Comprueba el primer argumento, en funcion del valor asigna el operador en la variable tipo
+            const tipo = condicionales[0].toLowerCase() == "and" ? " && " :  "|| " ;
+            //Modifica el valor de los condicionales eliminando el primer argumento
+            condicionales = condicionales.slice(1);
+            
+            //Guarda la longitud de condicionales
+            const longObjeto = condicionales.length;
+            //Variable que almacenara la expresion
+            let expresion = "";
+
+            //Recorre los argumentos de tres en tres, elimina los tres argumentos finales para evitar añadir el operador
+            for (let i = 0; i < longObjeto - 3; i+=3 ){
+                //Crea la express con los tres argumentos y concatenando al final el operador
+                expresion += "'${"+condicionales[i]+"}' "+condicionales[i+1]+" '"+condicionales[i+2]+"'"+tipo;
+            }
+
+            //Crea la express con los tres argumentos finales
+            expresion += "'${"+condicionales[longObjeto - 3]+"}' "+condicionales[longObjeto - 2]+" '"+condicionales[longObjeto - 1]+"'";
+
+            
+            for (const obj of objeto) {
+                //Funcion para evaluar la expresion compuesta, primero compila la plantilla apartir del objeto y la expression resultante la devuelve 
+                const eva = new Function(`return ${expresion.compilarPlantilla(obj)}`);
+                //Ejecuta la funcion, la cual devuelve la expresion y es evaluada
+                if (eva()) {
+                    //Concatena el objeto renderizado a la respuesta
+                    res += options.fn(obj);
+                } 
+            }
+            
+            //Devuelve la respuesta
+            return res;
+        });
+
     }
 
     /**
