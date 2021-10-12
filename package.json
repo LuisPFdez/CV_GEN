@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node dist/",
     "build": "npm run build:ts && npm run build:css && npm run copy",
-    "build:ts": "tsc && npm run lint",
+    "build:ts": "npm run lint && tsc",
     "build:css": "sass --no-source-map src/public/style.scss:dist/public/style.css --style compressed",
     "copy": "copyfiles -u 1 src/**/* -e '**/*.ts' -e '**/*.scss' dist/",
     "lint": "eslint --no-error-on-unmatched-pattern --ext .ts src/"
