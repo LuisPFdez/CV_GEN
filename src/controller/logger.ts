@@ -199,21 +199,33 @@ export class Logger {
         const datos = { nombre_error: error.name, mensaje_error: error.message, funcion: "", linea: "", archivo: "" };
         //Comprueba si stack es indefinido, en caso de serlo lo devuelve
         if (error.stack === undefined) return datos;
-        //Separa stack por lineas, obtiene la 2º, elimina los espacios del inicio y el final y los separa por 
-        //espacios en blanco, optiene las posiciones segunda y tercera del array y las guarda en archivo y linea
-        const [, funcion, linea] = error.stack.split("\n")[1].trim().split(" ");
-        //Guarda directamante llamada
-        datos.funcion = funcion;
-        //Separa lina por el signo de dos puntos,
-        const linea2 = linea.split(":");
-        //Elimina el parentesis del principio de la cadena
-        linea2[0] = linea2[0].replace("(", "");
-        //Obtiene todas las posiiones del array hasta la penultima y los vuelve a juntar con el signo de doble punto
-        datos.archivo = linea2.slice(0, -2).join(":");
-        //Obtiene la penultima posicion y obtiene el primer valor del array (slice devuelve un array)
-        datos.linea = linea2.slice(-2, -1)[0];
-        //Devuelve los datos
-        return datos;
+
+        try {
+            //Separa stack por lineas
+            const elementos = error.stack.split("\n");
+            //Obtiene la primera linea que empieza por "at", elimina los espacios del inicio y el final y los separa por 
+            //espacios en blanco, optiene las posiciones segunda y tercera del array y las guarda en archivo y linea
+            const [, funcion, linea] = elementos[elementos.findIndex((elemento) => {
+                if (/^at/i.test(elemento.trim())) {
+                    return true;
+                }
+            })].trim().split(" ");
+            //Guarda directamante llamada
+            datos.funcion = funcion;
+            //Separa lina por el signo de dos puntos,
+            const linea2 = linea.split(":");
+            //Elimina el parentesis del principio de la cadena
+            linea2[0] = linea2[0].replace("(", "");
+            //Obtiene todas las posiiones del array hasta la penultima y los vuelve a juntar con el signo de doble punto
+            datos.archivo = linea2.slice(0, -2).join(":");
+            //Obtiene la penultima posicion y obtiene el primer valor del array (slice devuelve un array)
+            datos.linea = linea2.slice(-2, -1)[0];
+            //Devuelve los datos
+            return datos;
+        } catch (e) {
+            //En caso de que al formatear, salte una excepcion
+            return datos;
+        }
     }
 
     /**
