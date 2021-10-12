@@ -5,11 +5,12 @@ import { router as index } from "./routes/index";
 
 import express, { Express } from "express";
 
+//Exporta la variable logger para el manejo de los logs
 export const logger = new Logger();
 
 const app: Express = express();
 
-
+//Middlewares para el cuerpo de las peticiones post
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
