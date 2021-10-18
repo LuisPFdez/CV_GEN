@@ -41,6 +41,9 @@ $grey:(
     "900": #727272
 );
 
+$blue2: #0b1d29;
+$black: #212121;
+
 $opacity:(
     "100": 100,
     "75":  75, 
@@ -77,6 +80,13 @@ $modos: ("normal", "hover", "focus", "active", "dasda");
 
 //-----------------------------------------------------------------------------//
 //Clases predefinidas y estilo principal
+@media (min-height: 700px){
+    .estilo-1, body{
+        height: 100% !important;
+        background-color: #0b1d29;
+    }    
+}
+
 *{
     margin: 0;
     padding: 0;
@@ -86,125 +96,174 @@ $modos: ("normal", "hover", "focus", "active", "dasda");
 
 html{
     margin: 0 auto;
-    // overflow-x: scroll;
-    overflow-y: hidden;
-    // background-color: green;
+    overflow-x: scroll;
     &, body{
-        height: 100%;
+        min-width: 550px;
+        min-height: 780px;
     }
 }
 
-.A4{
+.estilo-1{
     // Anchura recomendada 800px
     // Altura recomendada 750px
     max-width: 800px;
     width: auto;
-    height: 100%;
+    
     background-color: map-get($grey, "600" );
     & body{
         background-color: white;
+        display: grid;
+        grid-template-columns: minmax(250px, 1fr)  4fr;
+        grid-template-rows: minmax(125px, 15%) 85%;
+        column-gap: 5px;
     }
-
-    body{
-        display: flex;
-        flex-direction: row;
-    }
-}
-
-//Clase especifica para aplicar a un elemento que se situara a la izquierda
-//y que contendra la información principal
-.lateral{
-    padding: 15px;
-    background-color: map-get($red, "300" );
-    color: white;
-    height: 100%;
-    width:  35%;
-    min-width: 250px;
-    margin-right: 5px;
-    display: grid;
-    grid-auto-flow: row;
-    align-content: center;
-    gap: 5px;
     
-    //El & se situa unicamente con la intencion de ser mas legible
-    & hr{
-        width: 50%;
-        margin: 15px auto;
-    }
-
-    & section{
-        margin: 15px 0;
-        // border: #000 solid 2px;
-
-        &:first-of-type{
-            margin: 0;
-        }
-
-        &:last-of-type{
-            margin-bottom: 0;
-        }
-    }
-
-    & .header{
-        border-bottom: #000 2px solid;
-        padding: 5px;
+    .cabecera{
+        grid-column: 1 / 3;
+        overflow: hidden;
+        background-color: #0b1d29;
         width: 100%;
-        font-size: xx-large;
-        text-align: center;
+
+        display: inline-flex;
+        flex-direction: row;
+        align-items: center;
+        
+        .titulo-cont{
+
+            width: 75%;
+            text-align: center;
+            padding: 5px;
+            color: white;
+            
+            & .titulo{
+                font-size: xx-large;
+            }
+            
+            & .subtitulo{
+                font-size: large;
+            }
+            
+        }
+        
+        .img-1{
+            border-radius: 150px;
+            height: 75%;
+            // width: fit-content;
+            margin: auto;
+        }
+        
     }
-}
+    
+    //Clase especifica para aplicar a un elemento que se situara a la izquierda
+    //y que contendra la información principal
+    .lateral{
+        background-color: inherit;
 
-.principal{
-    background-color: inherit;
-    width: auto;
-    min-width: 210px;
-    padding: 15px;
-    display: grid;
-    grid-auto-flow: row;
-    align-content: center;
-    gap: 15px;
-}
+        padding: 15px;
+        height: 75%;
+        align-self: center;
+        margin-right: 5px;
 
-.especial-1{
-    & span.destacado{
-        font-weight: bold;
-        font-size: 1.25em;
-        text-transform: initial;
+        display: grid;
+        grid-auto-flow: row;
+        align-content: center;
+        gap: 5px;
+
+        border-right: 1px solid gray;
+        
+        //El & se situa unicamente con la intencion de ser mas legible
+        & hr{
+            width: 50%;
+            margin: 15px auto;
+        }
+        
+        & section{
+            margin: 15px 0;
+            // border: #000 solid 2px;
+
+            &:first-of-type{
+                margin: 0;
+            }
+            
+            &:last-of-type{
+                margin-bottom: 0;
+            }
+            
+            .titulo-seccion{
+                margin-bottom: 20px;
+                border-bottom: 1px solid #212121;
+                padding: 20px 0;
+                & span{
+                    color: #fff;
+                    font-size: large;
+                    padding: 5px;
+                    background-color: #29170B;
+                }
+            }
+        }
+
     }
-
-    text-align: center;
-    text-transform: capitalize;
-    font-variant: small-caps;
-}
-
-ol.lista-1, ul.lista-1{
-    list-style: none;
     
-    li{
-        margin-bottom: 8px;
+    .principal{
+        background-color: inherit;
+        min-width: 210px;
+        padding: 15px;
+        display: grid;
+        grid-auto-flow: row;
+        align-content: center;
+        gap: 15px;
+    }
     
-        & a, & .destacado{
+    .especial-1{
+        & span.destacado{
             font-weight: bold;
-            font-size: 1.05em;
+            font-size: 1.25em;
+            text-transform: initial;
         }
-
-        & a[href] {
-            color: inherit;
+        
+        text-align: center;
+        text-transform: capitalize;
+        font-variant: small-caps;
+    }
+    
+    ol.lista-1, ul.lista-1{
+        list-style: none;
+        
+        li{
+            margin-bottom: 8px;
+            
+            & a, & .destacado{
+                font-weight: bold;
+                font-size: 1.05em;
+            }
+            
+            & a[href] {
+                color: inherit;
+            }
+            
+            &:last-of-type{
+                margin-bottom: 0;
+            }
         }
-
-        &:last-of-type{
-            margin-bottom: 0;
+    }
+    
+    .seccion{
+        .titulo-seccion{
+            margin-bottom: 20px;
+            border-bottom: 1px solid #212121;
+            padding: 20px 0;
+            & span{
+                color: #fff;
+                font-size: large;
+                padding: 5px;
+                background-color: #29170B;
+            }
+            
         }
     }
 }
-
-.seccion{
-    h2{
-        border-bottom: map-get($blue, "900") 2px solid;
-    }
-}
-
-//-----------------------------------------------------------------------------//
+    
+    //-----------------------------------------------------------------------------//
 // Declaraciones de estilos predeterminados
 //Color Fondo
 @mixin bg ($color) {

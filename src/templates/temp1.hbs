@@ -1,6 +1,6 @@
 <!-- Curriculum de ejemplo -->
 <!DOCTYPE html>
-<html lang="es" class="A4">
+<html lang="es" class="estilo-1">
 
 <head>
     <meta charset="UTF-8">
@@ -12,29 +12,38 @@
 </head>
 
 <body>
-    <nav  class="lateral"> 
-        <section class="header">Datos Personales</section>
-        <img>
-        <section class="especial-1">
+    <header class="cabecera">
+        <img src="perfil.png" alt="Imagen de Perfil" class="img-1">
+        <section class="titulo-cont">
             {{#IDB Datos 'NOM'}}
-                <span class="destacado">{{Nombre}} </span>
-                {{Descripcion}}  
+                <h1 class="titulo">{{Descripcion}}</h1>
+            {{/IDB}}
+            {{#IDB Datos 'DES'}}
+                <span class="subtitulo">{{Descripcion}}</span>
             {{/IDB}}
         </section>
-        <hr class="separador">
+    </header>
+
+    <nav class="lateral"> 
+        
         <section>
+            <article class="titulo-seccion">
+                <span>Contacto</span>
+            </article>
             <ul class="lista-1">    
-                {{#IT-IF Datos 'ID' '!=' 'NOM'}}
+                {{#IT-IFM Datos 'and' 'ID' '!=' 'NOM' 'ID' '!=' 'DES'}}
                     <li>
                         <span class="destacado">{{Nombre}}</span>
                         {{Descripcion}}
                         <br>
                     </li>
-                {{/IT-IF}}
+                {{/IT-IFM}}
             </ul>
         </section>
-        <hr class="separador">
         <section>
+            <article class="titulo-seccion">
+                <span>Idiomas</span>
+            </article>
             <ul class="lista-1">
                 {{#IT Idiomas}}
                     <li>
@@ -52,7 +61,9 @@
     </nav>
     <main class="principal">
         <section class="seccion">
-            <h2>Formacion</h2>
+            <article class="titulo-seccion">
+                <span>Formacion</span>
+            </article>
             <ul class="lista-1">
             {{#IT Formacion }}
                 <li>
@@ -72,7 +83,9 @@
         </section>
         
         <section class="seccion">
-            <h2>Experiencia</h2>
+            <article class="titulo-seccion">
+                <span>Experiencia</span>
+            </article>
             <ul class="lista-1">
             {{#IT Experiencia }}
                 <li>
@@ -91,7 +104,9 @@
             </ul>
         </section>
         <section class="seccion">
-            <h2>Habilidades</h2>
+            <article class="titulo-seccion">
+                <span>Habilidades</span>
+            </article>
             <ul class="lista-1">
             {{#IT Habilidades}}
                 <li>
@@ -102,7 +117,9 @@
             </ul>
         </section>
         <section class="seccion">
-            <h2>Adicional</h2>
+             <article class="titulo-seccion">
+                <span>Adicional</span>
+            </article>
             <ul class="lista-1">
             {{#IT Adicional}}
                 <li>
