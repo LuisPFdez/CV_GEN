@@ -2,10 +2,12 @@
  * @file Archivo que permite el procesado de datos, como convertir datos de una base de datos a JSON o un HTML en PDF
  */
 import { Render, MDatos } from "./render";
-import { SpawnOptions, spawnSync } from "child_process";
-import { createConnection, ConnectionConfig, MysqlError } from "mysql";
-import { promisify } from "util";
 import { ErrorMysql } from "../errors/ErrorMysql";
+
+import { SpawnOptions, spawnSync } from "child_process";
+import { createConnection, ConnectionConfig, MysqlError, escape } from "mysql";
+import { promisify } from "util";
+import { SHA256 } from "crypto-js";
 
 /**
  * Funcion que se encarga de convertir los datos de las tablas de una base de datos a json
@@ -16,6 +18,8 @@ import { ErrorMysql } from "../errors/ErrorMysql";
 async function bbdd_a_json(config: ConnectionConfig, esquema?: string[]): Promise<MDatos> {
     //El modelo permite definir en que tablas se ha de buscar
     const modelo = esquema || ["Adicional", "Datos", "Experiencia", "Formacion", "Habilidades", "Idiomas"];
+    //La tabla tokens no puede ser incluida en los datos, al contener todos los tokens del 
+    modelo.indexOf("tokens") >= 0 ? modelo.splice(modelo.indexOf("tokens"), 1) : null;
     //JSON que será devuelto, contiene la informacion de la base de datos en forma JSON;
     const json: MDatos = {};
     //Las consultas de la base de datos se haran de forma asincrona, en este array se guardan todas esas consultas.
@@ -29,11 +33,9 @@ async function bbdd_a_json(config: ConnectionConfig, esquema?: string[]): Promis
     conexion.connect();
     //Recorre todas las tablas del modelo
     modelo.forEach((tabla) => {
-        //Query para cada tabla;
-        const stat = `Select * from ${tabla}`;
-        //Se añade la consula al array de consultas
-        queries.push(query(stat).then((datos) => {
-            //En caso de que se ejecute correctamente se almacenan todos los datos en la prpiedad correspondiente
+        //Ejecuta la consulta y la añade al array de consultas 
+        queries.push(query(`Select * from ${escape(tabla)}`).then((datos) => {
+            //En caso de que se ejecute correctamente se almacenan todos los datos en la propiedad correspondiente
             json[tabla] = [];
             for (const valor of datos as []) { //Recorre el array de datos, cada posicion corresponde a una linea de la tabla
                 //Añade el objeto que correponde a la fila, para eliminar RowDataPacket del objeto, se pasa a string y luego a JSON
@@ -50,6 +52,81 @@ async function bbdd_a_json(config: ConnectionConfig, esquema?: string[]): Promis
     conexion.end();
     //Devuelve el objeto json.
     return json;
+}
+
+/**
+ * Metodo para insertar un token en la base de datos
+ * @param token string, token a insertar
+ * @param config ConnectionConfig, configuracion para la conexion a la base de datos 
+ */
+async function token_bbdd(token: string, config: ConnectionConfig): Promise<void> {
+    //Crea la conexion
+    const conexion = createConnection(config);
+    //Establece la funcion conexion.query para permitir el uso de promesas, se vincula el objeto conexion
+    const query = promisify(conexion.query).bind(conexion);
+    //Inicia la conexion
+    conexion.connect();
+    //Inserta los tokens, encriptado con un SHA256 (reduce su longitod a 64 caracteres) 
+    await query(`Insert into Tokens values ('${SHA256(token).toString()}')`).catch((error: MysqlError) => {
+        //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
+        throw new ErrorMysql("Error (" + error.name + "): " + error.message, 500);
+    });
+
+    //Destruye la conexion con la base de datos, evita las operaciones restates
+    conexion.end();
+}
+
+/**
+ * 
+ * @param token string, token a borrar
+ * @param config ConnectionConfig, configuracion para la conexion a la base de datos 
+ */
+async function borrar_token(token: string, config: ConnectionConfig): Promise<void> {
+    //Crea la conexion
+    const conexion = createConnection(config);
+    //Establece la funcion conexion.query para permitir el uso de promesas, se vincula el objeto conexion
+    const query = promisify(conexion.query).bind(conexion);
+    //Inicia la conexion
+    conexion.connect();
+    //Ejecuta el query para borrar de la base de datos, es necesario encritparlo ya que en la base de datos estan todos encriptados
+    await query(`Delete from Tokens where Token = ${SHA256(token).toString()}`).catch((error: MysqlError) => {
+        //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
+        throw new ErrorMysql("Error (" + error.name + "): " + error.message, 500);
+    });
+    //Finaliza la conexion
+    conexion.end();
+}
+
+/**
+ * Metodo para obtener todos los tokens de la base de daos
+ * @param config ConnectionConfig, configuracion para la conexion a la base de datos
+ * @returns string[], Array con los tokens
+ */
+async function bbdd_token(config: ConnectionConfig): Promise<string[]> {
+    //Array de strings con todos los tokens
+    const tokens: string[] = [];
+    //Crea la conexion
+    const conexion = createConnection(config);
+    //Establece la funcion conexion.query para permitir el uso de promesas, se vincula el objeto conexion
+    const query = promisify(conexion.query).bind(conexion);
+    //Inicia la conexion
+    conexion.connect();
+    //Ejecuta el query de busqueda
+    query('Select * from Tokens').then((resultado) => {
+        //Se itera el resultado
+        for (const token of resultado as []) {
+            //Obtiene la propiedad token del objeto
+            const { Token } = token;
+            //Añade el valor al array de los tokens
+            tokens.push(Token);
+        }
+    }).catch((error: MysqlError) => {
+        //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
+        throw new ErrorMysql("Error (" + error.name + "): " + error.message, 500);
+    });
+    //Devuelve el array de tokens 
+    return tokens;
+
 }
 
 /**
@@ -97,4 +174,4 @@ async function html_a_pdf(argumentos: Array<string>, opciones: SpawnOptions = {}
 
 }
 
-export { bbdd_a_json, json_a_html, html_a_pdf };
+export { bbdd_a_json, token_bbdd, borrar_token, bbdd_token, json_a_html, html_a_pdf };

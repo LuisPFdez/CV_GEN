@@ -1,24 +1,24 @@
 //Importa la variable logger del index
-import { logger } from '../index';
+import { logger, DB_CONFIG } from '../index';
 
 //Importa las funciones de librerias locales
 import { bbdd_a_json, json_a_html } from "../controller/lib";
 import { bodyDefinido, respuesta } from '../controller/serv';
 
 //Importa los tipos y funciones de los modulos de node
-import { ConnectionConfig } from 'mysql';
 import { Router, Request, Response } from "express";
 
 //Exporta la constante router
 export const router = Router();
 
-//Configuracion para la conexion a la base de datos
-const DB_CONFIG: ConnectionConfig = {
-    database: process.env.DB_DATABASE,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    host: process.env.DB_HOST
-};
+/**
+ enum CODIGOS_ESTADO{
+    OK = 200,
+    Bad_Request = 400,
+    Unauthorized = 401,
+    Internal_Server_Error = 500
+    }
+ */
 
 //Ruta a las plantillas 
 const rutaPlantillas = "dist/templates/";
