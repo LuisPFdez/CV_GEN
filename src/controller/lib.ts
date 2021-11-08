@@ -3,6 +3,7 @@
  */
 import { Render, MDatos } from "./render";
 import { ErrorMysql } from "../errors/ErrorMysql";
+import { CODIGOS_ESTADO } from "./config";
 
 import { SpawnOptions, spawnSync } from "child_process";
 import { createConnection, ConnectionConfig, MysqlError, escape } from "mysql";
@@ -43,7 +44,7 @@ async function bbdd_a_json(config: ConnectionConfig, esquema?: string[]): Promis
             }
         }).catch((error: MysqlError) => {
             //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
-            throw new ErrorMysql("Error (" + error.name + "): " + error.message, 500);
+            throw new ErrorMysql("Error (" + error.name + "): " + error.message, CODIGOS_ESTADO.Internal_Server_Error);
         }));
     });
     //Espera a que todas las consultas de la base de datos terminen
@@ -69,7 +70,7 @@ async function token_bbdd(token: string, config: ConnectionConfig): Promise<void
     //Inserta los tokens, encriptado con un SHA256 (reduce su longitod a 64 caracteres) 
     await query(`Insert into Tokens values ('${SHA256(token).toString()}')`).catch((error: MysqlError) => {
         //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
-        throw new ErrorMysql("Error (" + error.name + "): " + error.message, 500);
+        throw new ErrorMysql("Error (" + error.name + "): " + error.message, CODIGOS_ESTADO.Internal_Server_Error);
     });
 
     //Destruye la conexion con la base de datos, evita las operaciones restates
@@ -91,7 +92,7 @@ async function borrar_token(token: string, config: ConnectionConfig): Promise<vo
     //Ejecuta el query para borrar de la base de datos, es necesario encritparlo ya que en la base de datos estan todos encriptados
     await query(`Delete from Tokens where Token = ${SHA256(token).toString()}`).catch((error: MysqlError) => {
         //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
-        throw new ErrorMysql("Error (" + error.name + "): " + error.message, 500);
+        throw new ErrorMysql("Error (" + error.name + "): " + error.message, CODIGOS_ESTADO.Internal_Server_Error);
     });
     //Finaliza la conexion
     conexion.end();
@@ -122,7 +123,7 @@ async function bbdd_token(config: ConnectionConfig): Promise<string[]> {
         }
     }).catch((error: MysqlError) => {
         //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
-        throw new ErrorMysql("Error (" + error.name + "): " + error.message, 500);
+        throw new ErrorMysql("Error (" + error.name + "): " + error.message, CODIGOS_ESTADO.Internal_Server_Error);
     });
     //Devuelve el array de tokens 
     return tokens;
