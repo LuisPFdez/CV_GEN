@@ -7,7 +7,7 @@ import { ErrorGeneral } from "../errors/ErrorGeneral";
 import { borrar_token } from "./lib";
 
 import { NextFunction, Request, Response } from "express";
-import { TokenExpiredError, verify } from "jsonwebtoken";
+import { JsonWebTokenError, TokenExpiredError, verify } from "jsonwebtoken";
 
 /**
  * Funcion que genera una respuesta json, con el mensaje y el codigo de estado HTTP
@@ -41,7 +41,7 @@ function bodyDefinido(req: Request, res: Response, next: NextFunction): Response
 }
 
 /**
- * Midleware que comprueba si el token de acceso es valido 
+ * Midleware que comprueba si el token de acceso es valido y tiene acceso a la ruta especificada
  * @param req Request
  * @param res Response
  * @param next NextFunction
@@ -65,24 +65,35 @@ function comprobarToken(req: Request, res: Response, next: NextFunction): Respon
     try {
         //Obtiene el objeto rutas de el token
         const { rutas } = <Record<string, unknown>>verify(token, process.env.SECRETO);
-        if (!(<string[]>rutas).includes(req.originalUrl)) {
-            return respuesta(res, "Error", CODIGOS_ESTADO.Not_Found);
+        //Comprueba si alguna de las rutas coincide con la url solicitada, en caso de no devolvera una respuesta indicandolo
+        if (!(<string[]>rutas).some((elemento) => new RegExp(elemento).test(req.originalUrl))) {
+            return respuesta(res, "El token no tiene acceso a la ruta especificada", CODIGOS_ESTADO.Unauthorized);
         }
     } catch (e) {
-        //Comprueba si el error es de tipo TokenExpiredError
+        //Comprueba si el error es de tipo TokenExpiredErrors
         if (e instanceof TokenExpiredError) {
             //Elimina el token de la base de datos
             borrar_token(token, DB_CONFIG);
             //Lanza un error indicando que el token ha expirado
-            return respuesta(res, "Error, token expirado", CODIGOS_ESTADO.Not_Found);
+            return respuesta(res, "Error, token expirado", CODIGOS_ESTADO.Bad_Request);
+        } else if ( e instanceof JsonWebTokenError){
+            //Lanza un error indicando 
+            return respuesta(res, "Error token no valido", CODIGOS_ESTADO.Bad_Request);
         }
         //Devuelve una respuesta indicado que el token no es valido
-        return respuesta(res, "Erorr", CODIGOS_ESTADO.Not_Found);
+        return respuesta(res, "Error interno del servidor. Comprueba las rutas del token", CODIGOS_ESTADO.Internal_Server_Error);
     }
     //Continua al siguente middleware
     return next();
 }
 
+/**
+ * Comprueba el acceso a la ruta mediante la clave secreta
+ * @param req Request
+ * @param res Response
+ * @param next NextFunction
+ * @returns Response | void
+ */
 function comprobarClave(req: Request, res: Response, next: NextFunction): Response | void {
     //Comprueba si la clave esta declarada en el head y si es la correcta. En caso de ser incorrecta, respondera con un mensaje de error
     if (req.header("secret-key") == undefined || req.header("secret-key") != process.env.SECKEY) return respuesta(res, "La clave de acceso no es correcta o no ha sido definida, es necesario que la clave del header sea 'secret-key'", CODIGOS_ESTADO.Bad_Request);
@@ -90,6 +101,13 @@ function comprobarClave(req: Request, res: Response, next: NextFunction): Respon
     return next();
 }
 
+/**
+ * Comprueba si tiene acceso a una ruta, mediante clave secreta o mediante token
+ * @param req Request
+ * @param res Response
+ * @param next NextFunction
+ * @returns Response | void
+ */
 function comprobarAcceso(req: Request, res: Response, next: NextFunction): Response | void {
     //Comprueba si en la cabecera esta la clave secreta, en caso de estar y ser la correcta pasa al siguente middleware
     if (req.header("secret-key") != undefined && req.header("secret-key") == process.env.SECKEY) return next();
