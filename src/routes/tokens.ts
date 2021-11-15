@@ -1,5 +1,5 @@
 import { CODIGOS_ESTADO, DB_CONFIG, listadoTokens, logger } from "../controller/config";
-import { bbdd_token, token_bbdd } from '../controller/lib';
+import { bbdd_token, token_bbdd, borrar_token } from '../controller/lib';
 import { bodyDefinido, comprobarClave, respuesta } from '../controller/serv';
 
 import { Router, Request, Response } from "express";
@@ -22,23 +22,43 @@ router.post("/gen_token", comprobarClave, bodyDefinido, async (req: Request, res
     //Variable que almacena el array de ru
     const rutas: string[] = req.body.rutas;
 
+    //Comprueba si rutas es un array, en caso de no serlo responde con un error
     if (!Array.isArray(rutas)) return respuesta(res, "Las rutas han de ser un array", CODIGOS_ESTADO.Bad_Request);
 
     try {
+        //Crea el token de acceso
         const jwt = sign({ "rutas": rutas, "iat": new Date().getTime() }, process.env.SECRETO, { expiresIn: fecha });
-
+        //Inserta el token la base de datos
         await token_bbdd(jwt, DB_CONFIG);
-
+        //Carga todos los tokens de la base de datos
         listadoTokens.sustituirValor(await bbdd_token(DB_CONFIG));
-
+        //Responde con el token 
         return respuesta(res, jwt, CODIGOS_ESTADO.OK);
     } catch (e) {
+        //Guarda el error en el logger
         logger.error_archivo("Error en gen_token", {}, <Error>e);
+        //Devuelve un mensaje de error del servido
         return respuesta(res, "Error del servidor", CODIGOS_ESTADO.Internal_Server_Error);
     }
 
 });
 
-// router.post("/del_token", comprobarClave, bodyDefinido, async (req: Request, res:Response) => {
+router.post("/borrar_token", comprobarClave, bodyDefinido, async (req: Request, res: Response) => {
+    //Comprueba si el token se ha pasado por parametro url o en el cuerpo del post, en caso de no estar definido devuelve un mensaje de error
+    if (req.body.token == undefined && req.query.token == undefined) respuesta(res, "Ha de pasarse el token a traves del cuerpo o un parametro en la url", CODIGOS_ESTADO.Bad_Request);
+    //Obtiene el token del cuerpo o de la url
+    const token = <string>req.body.token || <string>req.query.token;
 
-// });
+    try {
+        //Borra el token de la base de datos
+        await borrar_token(token, DB_CONFIG);
+        //Carga todos los tokens de la base de datos
+        listadoTokens.sustituirValor(await bbdd_token(DB_CONFIG));
+        return respuesta(res, `Token ${token} borrado`, CODIGOS_ESTADO.OK);
+    } catch (e) {
+        //Guarda el error en el logger
+        logger.error_archivo("Error en borrar_token", {}, <Error>e);
+        //Devuelve un mensaje de error del servido
+        return respuesta(res, "Error del servidor", CODIGOS_ESTADO.Internal_Server_Error);
+    }
+});

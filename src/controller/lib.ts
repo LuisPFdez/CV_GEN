@@ -6,7 +6,7 @@ import { ErrorMysql } from "../errors/ErrorMysql";
 import { CODIGOS_ESTADO } from "./config";
 
 import { SpawnOptions, spawnSync } from "child_process";
-import { createConnection, ConnectionConfig, MysqlError, escape } from "mysql";
+import { createConnection, ConnectionConfig, MysqlError } from "mysql";
 import { promisify } from "util";
 import { SHA256 } from "crypto-js";
 
@@ -35,7 +35,7 @@ async function bbdd_a_json(config: ConnectionConfig, esquema?: string[]): Promis
     //Recorre todas las tablas del modelo
     modelo.forEach((tabla) => {
         //Ejecuta la consulta y la añade al array de consultas 
-        queries.push(query(`Select * from ${escape(tabla)}`).then((datos) => {
+        queries.push(query(`Select * from ${tabla}`).then((datos) => {
             //En caso de que se ejecute correctamente se almacenan todos los datos en la propiedad correspondiente
             json[tabla] = [];
             for (const valor of datos as []) { //Recorre el array de datos, cada posicion corresponde a una linea de la tabla
@@ -113,7 +113,7 @@ async function bbdd_token(config: ConnectionConfig): Promise<string[]> {
     //Inicia la conexion
     conexion.connect();
     //Ejecuta el query de busqueda
-    query('Select * from Tokens').then((resultado) => {
+    await query('Select * from Tokens').then((resultado) => {
         //Se itera el resultado
         for (const token of resultado as []) {
             //Obtiene la propiedad token del objeto

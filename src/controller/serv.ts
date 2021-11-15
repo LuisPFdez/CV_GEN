@@ -8,6 +8,7 @@ import { borrar_token } from "./lib";
 
 import { NextFunction, Request, Response } from "express";
 import { JsonWebTokenError, TokenExpiredError, verify } from "jsonwebtoken";
+import { SHA256 } from "crypto-js";
 
 /**
  * Funcion que genera una respuesta json, con el mensaje y el codigo de estado HTTP
@@ -49,11 +50,11 @@ function bodyDefinido(req: Request, res: Response, next: NextFunction): Response
  */
 function comprobarToken(req: Request, res: Response, next: NextFunction): Response | void {
     //Comprueba si el header del token de acceso es un string, en caso contrario responde con un error
-    if (typeof (req.header("token-acceso")) != 'string') return respuesta(res, "", CODIGOS_ESTADO.OK);
+    if (typeof (req.header("token-acceso")) != 'string') return respuesta(res, "Es necesario establecer un token de acceso en el header", CODIGOS_ESTADO.Bad_Request);
     //Almacena el token en una variable
     const token = <string>req.header("token-acceso");
     //Comprueba si el token esta en la lista de los tokens validos, en caso contrario lanza un error
-    if (!listadoTokens.includes(token)) return respuesta(res, "", CODIGOS_ESTADO.OK);
+    if (!listadoTokens.includes(SHA256(token).toString())) return respuesta(res, "El token de acceso no valido", CODIGOS_ESTADO.Unauthorized);
     //Comprueba si la variable de entorno es indefinida, en caso de serlo lanza un error
     if (process.env.SECRETO == undefined) {
         //Guarda el error en el archivo log
@@ -76,7 +77,7 @@ function comprobarToken(req: Request, res: Response, next: NextFunction): Respon
             borrar_token(token, DB_CONFIG);
             //Lanza un error indicando que el token ha expirado
             return respuesta(res, "Error, token expirado", CODIGOS_ESTADO.Bad_Request);
-        } else if ( e instanceof JsonWebTokenError){
+        } else if (e instanceof JsonWebTokenError) {
             //Lanza un error indicando 
             return respuesta(res, "Error token no valido", CODIGOS_ESTADO.Bad_Request);
         }

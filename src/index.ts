@@ -4,6 +4,7 @@ import { listadoTokens, logger, DB_CONFIG } from "./controller/config";
 import { bbdd_token } from "./controller/lib";
 import { router as index } from "./routes/index";
 import { router as tokens } from "./routes/tokens";
+import { comprobarAcceso } from './controller/serv';
 
 import express, { Express } from "express";
 
@@ -13,13 +14,12 @@ const app: Express = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-//Archivos estatics
-app.use(express.static(__dirname + "/public"));
-
 //Ruta principal
 app.use(index);
 //Ruta para adminstar los tokens
 app.use("/tokens", tokens);
+//Archivos estatics
+app.use( comprobarAcceso, express.static(__dirname + "/public"));
 
 //Inicia el servidor
 app.listen(process.env.PORT, async () => {
