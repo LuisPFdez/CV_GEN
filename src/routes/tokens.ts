@@ -43,9 +43,9 @@ router.post("/gen_token", comprobarClave, bodyDefinido, async (req: Request, res
 
 });
 
-router.post("/borrar_token", comprobarClave, bodyDefinido, async (req: Request, res: Response) => {
+router.post("/borrar_token", comprobarClave, bodyDefinido, async (req: Request, res: Response): Promise<Response> => {
     //Comprueba si el token se ha pasado por parametro url o en el cuerpo del post, en caso de no estar definido devuelve un mensaje de error
-    if (req.body.token == undefined && req.query.token == undefined) respuesta(res, "Ha de pasarse el token a traves del cuerpo o un parametro en la url", CODIGOS_ESTADO.Bad_Request);
+    if (req.body.token == undefined && req.query.token == undefined) return respuesta(res, "Ha de pasarse el token a traves del cuerpo o un parametro en la url", CODIGOS_ESTADO.Bad_Request);
     //Obtiene el token del cuerpo o de la url
     const token = <string>req.body.token || <string>req.query.token;
 
@@ -54,7 +54,7 @@ router.post("/borrar_token", comprobarClave, bodyDefinido, async (req: Request, 
         await borrar_token(token, DB_CONFIG);
         //Carga todos los tokens de la base de datos
         listadoTokens.sustituirValor(await bbdd_token(DB_CONFIG));
-        return respuesta(res, `Token ${token} borrado`, CODIGOS_ESTADO.OK);
+        return respuesta(res, `Token [ ${token} ] borrado`, CODIGOS_ESTADO.OK);
     } catch (e) {
         //Guarda el error en el logger
         logger.error_archivo("Error en borrar_token", {}, <Error>e);

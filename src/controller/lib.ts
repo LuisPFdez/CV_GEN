@@ -90,7 +90,7 @@ async function borrar_token(token: string, config: ConnectionConfig): Promise<vo
     //Inicia la conexion
     conexion.connect();
     //Ejecuta el query para borrar de la base de datos, es necesario encritparlo ya que en la base de datos estan todos encriptados
-    await query(`Delete from Tokens where Token = ${SHA256(token).toString()}`).catch((error: MysqlError) => {
+    await query(`Delete from Tokens where Token = '${SHA256(token).toString()}'`).catch((error: MysqlError) => {
         //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
         throw new ErrorMysql("Error (" + error.name + "): " + error.message, CODIGOS_ESTADO.Internal_Server_Error);
     });
