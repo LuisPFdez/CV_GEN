@@ -20,7 +20,7 @@ async function bbdd_a_json(config: ConnectionConfig, esquema?: string[]): Promis
     //El modelo permite definir en que tablas se ha de buscar
     const modelo = esquema || ["Adicional", "Datos", "Experiencia", "Formacion", "Habilidades", "Idiomas"];
     //La tabla tokens no puede ser incluida en los datos, al contener todos los tokens del 
-    modelo.indexOf("tokens") >= 0 ? modelo.splice(modelo.indexOf("tokens"), 1) : null;
+    modelo.indexOf("Tokens") >= 0 ? modelo.splice(modelo.indexOf("Tokens"), 1) : null;
     //JSON que será devuelto, contiene la informacion de la base de datos en forma JSON;
     const json: MDatos = {};
     //Las consultas de la base de datos se haran de forma asincrona, en este array se guardan todas esas consultas.
@@ -43,6 +43,8 @@ async function bbdd_a_json(config: ConnectionConfig, esquema?: string[]): Promis
                 json[tabla].push(JSON.parse(JSON.stringify(valor)));
             }
         }).catch((error: MysqlError) => {
+            //Destruye la conexion con la base de datos, evita las operaciones restates
+            conexion.end();
             //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
             throw new ErrorMysql("Error (" + error.name + "): " + error.message, CODIGOS_ESTADO.Internal_Server_Error);
         }));
@@ -69,10 +71,11 @@ async function token_bbdd(token: string, config: ConnectionConfig): Promise<void
     conexion.connect();
     //Inserta los tokens, encriptado con un SHA256 (reduce su longitod a 64 caracteres) 
     await query(`Insert into Tokens values ('${SHA256(token).toString()}')`).catch((error: MysqlError) => {
+        //Destruye la conexion con la base de datos, evita las operaciones restates
+        conexion.end();
         //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
         throw new ErrorMysql("Error (" + error.name + "): " + error.message, CODIGOS_ESTADO.Internal_Server_Error);
     });
-
     //Destruye la conexion con la base de datos, evita las operaciones restates
     conexion.end();
 }
@@ -91,6 +94,8 @@ async function borrar_token(token: string, config: ConnectionConfig): Promise<vo
     conexion.connect();
     //Ejecuta el query para borrar de la base de datos, es necesario encritparlo ya que en la base de datos estan todos encriptados
     await query(`Delete from Tokens where Token = '${SHA256(token).toString()}'`).catch((error: MysqlError) => {
+        //Destruye la conexion con la base de datos, evita las operaciones restates
+        conexion.end();
         //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
         throw new ErrorMysql("Error (" + error.name + "): " + error.message, CODIGOS_ESTADO.Internal_Server_Error);
     });
@@ -122,9 +127,13 @@ async function bbdd_token(config: ConnectionConfig): Promise<string[]> {
             tokens.push(Token);
         }
     }).catch((error: MysqlError) => {
+        //Destruye la conexion con la base de datos, evita las operaciones restates
+        conexion.end();
         //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
         throw new ErrorMysql("Error (" + error.name + "): " + error.message, CODIGOS_ESTADO.Internal_Server_Error);
     });
+    //Finaliza la conexion
+    conexion.end();
     //Devuelve el array de tokens 
     return tokens;
 
@@ -175,4 +184,79 @@ async function html_a_pdf(argumentos: Array<string>, opciones: SpawnOptions = {}
 
 }
 
-export { bbdd_a_json, token_bbdd, borrar_token, bbdd_token, json_a_html, html_a_pdf };
+/**
+ * Permite ejecutar una sentencia en mysql, pasada por parametro
+ * @param consulta string, consulta a realizar
+ * @param config ConnectionConfig, configuracion para la conexion a la base de datos
+ * @returns el resultado de la consulta, en caso de que la consulta sea incorrecta lanza una excepcion
+ */
+async function ejecutar_consulta(consulta: string, config: ConnectionConfig): Promise<Array<Record<string, string>>> {
+    //Crea la conexion
+    const conexion = createConnection(config);
+    //Establece la funcion conexion.query para permitir el uso de promesas, se vincula el objeto conexion
+    const query = promisify(conexion.query).bind(conexion);
+    //Inicia la conexion
+    conexion.connect();
+    //Variable con los datos de salida
+    let datos: Array<Record<string, string>> = [];
+    //Ejecuta la sentencia pasada por parametro
+    await query(consulta).then((datos_query) => {
+        //Convierte los datos a un JSON.
+        datos = JSON.parse(JSON.stringify(datos_query));
+    }).catch((error: MysqlError) => {
+        //Destruye la conexion con la base de datos, evita las operaciones restates
+        conexion.end();
+        //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
+        throw new ErrorMysql("Error (" + error.name + "): " + error.message + ". Consulta -> " + consulta, CODIGOS_ESTADO.Internal_Server_Error);
+    });
+    //Finaliza la conexion
+    conexion.end();
+    //Devuelve el resultado
+    return datos;
+}
+
+/**
+ * Permite ejecutar multiples sentencias
+ * @param consultas Record<string, string>. Objeto con las consultas y el nombre de estas.
+ * @param config ConnectionConfig, configuracion para la conexion a la base de datos
+ * @returns un objeto con los resultados de las consultas, el objeto se compone de el nombre de la consulta ejecutada (el parametro consultas) y su resultado. Si una consulta es incorrecta lanza una excepcion
+ */
+async function ejecutar_multiples_consultas(consultas: Record<string, string>, config: ConnectionConfig): Promise<MDatos> {
+    //Crea la conexion
+    const conexion = createConnection(config);
+    //Establece la funcion conexion.query para permitir el uso de promesas, se vincula el objeto conexion
+    const query = promisify(conexion.query).bind(conexion);
+    //Las consultas de la base de datos se haran de forma asincrona, en este array se guardan todas esas consultas.
+    const queries: Promise<unknown>[] = [];
+    //Inicia la conexion    
+    conexion.connect();
+    //Variable con los datos de salida, o un valor booleano
+    const datos: MDatos = {};
+    //Establece para hacer una 
+    conexion.beginTransaction();
+    //Recorre las consultas
+    Object.keys(consultas).forEach((consulta) => {
+        //Ejecuta la sentencia y alamacena la query en un array de promesas
+        queries.push(query(consultas[consulta]).then((datos_query) => {
+            //Convierte los datos a un JSON y los almacena el la propiedad de objeto correspondiente a la sentencia ejecutada
+            datos[consulta] = JSON.parse(JSON.stringify(datos_query));
+        }).catch((error: MysqlError) => {
+            //Ejecuta un rollback para evitar cambiar los datos
+            conexion.rollback();
+            //Destruye la conexion con la base de datos, evita las operaciones restates
+            conexion.end();
+            //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
+            throw new ErrorMysql("Error (" + error.name + "): " + error.message + ". Consulta -> " + consulta, CODIGOS_ESTADO.Internal_Server_Error);
+        }));
+    });
+    //Espera a que todas las consultas de la base de datos terminen
+    await Promise.all(queries);
+    //Guarda los cambios 
+    conexion.commit();
+    //Finaliza la conexion
+    conexion.end();
+    //Devuelve el resultado
+    return datos;
+}
+
+export { bbdd_a_json, token_bbdd, borrar_token, bbdd_token, json_a_html, html_a_pdf, ejecutar_consulta, ejecutar_multiples_consultas };

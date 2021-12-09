@@ -33,7 +33,7 @@ Array.prototype.sustituirValor = function <T>(array: Array<T>) {
     this.push(...array);
 };
 
-
+//Enum con codigos de estado HTTP
 export enum CODIGOS_ESTADO {
     OK = 200,
     Bad_Request = 400,

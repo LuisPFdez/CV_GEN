@@ -13,11 +13,11 @@ import { SHA256 } from "crypto-js";
 /**
  * Funcion que genera una respuesta json, con el mensaje y el codigo de estado HTTP
  * @param res Response, funcion de respuesta
- * @param mensaje string | Record<string, unknown>, recibe un string o un json
+ * @param mensaje unknown, recibe cuarquier tipo y este es devuelto
  * @param codigoEstado Codigo de estado HTTP
  * @returns Response 
  */
-function respuesta(res: Response, mensaje: string | Record<string, unknown>, codigoEstado: number): Response {
+function respuesta(res: Response, mensaje: unknown, codigoEstado: number): Response {
     //Devuelve la respuesta, con el codigo de estado, y un json que contiene el mensaje y el codigo de nuevo
     return res.status(codigoEstado).json(
         { mensaje: mensaje, codigoEstado: codigoEstado }

@@ -2,7 +2,7 @@
 import { logger, DB_CONFIG, CODIGOS_ESTADO } from '../controller/config';
 
 //Importa las funciones de librerias locales
-import { bbdd_a_json, json_a_html } from "../controller/lib";
+import { bbdd_a_json, ejecutar_consulta, ejecutar_multiples_consultas, json_a_html } from "../controller/lib";
 import { bodyDefinido, comprobarAcceso, respuesta } from '../controller/serv';
 
 //Importa los tipos y funciones de los modulos de node
@@ -19,7 +19,7 @@ const plantillaPre = "temp1.hbs";
 //Rutas GET
 
 //Devuelve la plantilla renderizada, con la informacion de la base de datos 
-router.get("/bbdd_html", comprobarAcceso, bodyDefinido, async (req: Request, res: Response): Promise<Response> => {
+router.get("/bbdd_html", comprobarAcceso, async (req: Request, res: Response): Promise<Response> => {
     try {
         //Comprueba si se ha pasado por parametro la plantilla, en caso contrario asigna la plantilla por defecto
         const plantilla: string = <string>req.query.plantilla || plantillaPre;
@@ -38,20 +38,36 @@ router.get("/bbdd_html", comprobarAcceso, bodyDefinido, async (req: Request, res
     }
 });
 
-//Devuelve un json con la informacion de la base de datos
-router.get("/bbdd_json", comprobarAcceso, bodyDefinido, async (_req: Request, res: Response): Promise<Response> => {
-    try {
-
-        //Json con la informacion
-        const json = await bbdd_a_json(DB_CONFIG);
-        //Devuelve el json con el codigo de estado 200
-        return respuesta(res, json, CODIGOS_ESTADO.OK);
-
-    } catch (e) {
+router.get("/tablas_bbdd", async (req: Request, res: Response): Promise<Response> => {
+    try{
+        //Recupera las tablas de la base de datos
+        const json = await ejecutar_consulta("SHOW TABLES", DB_CONFIG);
+        //Objeto con las consultas y el nombre de estas
+        const tablas: Record<string, string> = {};
+        
+        //En caso de que tipo de json sea un booleano responde con un objeto vacio y un codigo de error 500
+        if (typeof (json) == "boolean") return respuesta(res, {}, CODIGOS_ESTADO.Internal_Server_Error);
+        
+        //Recorre los datos de la consulta json
+        json.forEach((datos) => {
+            //Obtiene el valor de cada consulta
+            const tabla = datos[`Tables_in_${DB_CONFIG.database}`];
+            //Crea un objeto con las consultas a ejecutar
+            tablas[tabla] = `DESCRIBE ${tabla}`;
+        });
+        
+        //Elimina la tabla tokens del objeto de consultas
+        delete tablas["Tokens"];
+        //Ejecuta las consultas y las almacena en el resultado
+        const resultado = await ejecutar_multiples_consultas(tablas, DB_CONFIG); 
+        
+        //Devuelve el resultado de la consulta
+        return respuesta(res, resultado, CODIGOS_ESTADO.OK);
+    } catch (e){
         //En caso de error se almacena en el archivo 
-        logger.error_archivo("Error en ddbb_json", {}, <Error>e);
+        logger.error_archivo("Error en tablas_bbdd", {}, <Error>e);
         //Devuelve una respuesta indicado, junto con el mensaje del error y el codigo de estado 500
-        return respuesta(res, "Fallo al renderizar el mensaje. Error: " + (<Error>e).message, CODIGOS_ESTADO.Internal_Server_Error);
+        return respuesta(res, "Fallo al ejecutar la query de busqueda. " + (<Error>e).message, CODIGOS_ESTADO.Internal_Server_Error);
     }
 });
 
