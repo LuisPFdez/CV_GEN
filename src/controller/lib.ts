@@ -217,11 +217,17 @@ async function ejecutar_consulta(consulta: string, config: ConnectionConfig): Pr
 
 /**
  * Permite ejecutar multiples sentencias
- * @param consultas Record<string, string>. Objeto con las consultas y el nombre de estas.
+ * @param consultas Record<string | number, string> | string[]. Objeto o Array con las consultas y el nombre de estas.
  * @param config ConnectionConfig, configuracion para la conexion a la base de datos
  * @returns un objeto con los resultados de las consultas, el objeto se compone de el nombre de la consulta ejecutada (el parametro consultas) y su resultado. Si una consulta es incorrecta lanza una excepcion
  */
-async function ejecutar_multiples_consultas(consultas: Record<string, string>, config: ConnectionConfig): Promise<MDatos> {
+async function ejecutar_multiples_consultas(consultas: Record<string | number, string> | string[], config: ConnectionConfig): Promise<MDatos> {
+    //Establece el objeto de las consultas.
+    let oConsultas: Record<string, string> = {};
+    //Comprueba si consultas es un array. En caso de ser un array convierte el array a un objeto 
+    if (Array.isArray(consultas)) consultas.forEach(((valor, index) => { oConsultas[index.toString()] = valor }));
+    //En caso de no ser un objeto asigna consultas a oConsultas
+    else oConsultas = consultas;
     //Crea la conexion
     const conexion = createConnection(config);
     //Establece la funcion conexion.query para permitir el uso de promesas, se vincula el objeto conexion
@@ -235,9 +241,9 @@ async function ejecutar_multiples_consultas(consultas: Record<string, string>, c
     //Establece para hacer una 
     conexion.beginTransaction();
     //Recorre las consultas
-    Object.keys(consultas).forEach((consulta) => {
+    Object.keys(oConsultas).forEach((consulta) => {
         //Ejecuta la sentencia y alamacena la query en un array de promesas
-        queries.push(query(consultas[consulta]).then((datos_query) => {
+        queries.push(query(oConsultas[consulta]).then((datos_query) => {
             //Convierte los datos a un JSON y los almacena el la propiedad de objeto correspondiente a la sentencia ejecutada
             datos[consulta] = JSON.parse(JSON.stringify(datos_query));
         }).catch((error: MysqlError) => {
