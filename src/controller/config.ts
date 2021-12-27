@@ -3,7 +3,7 @@
  */
 
 import { ConnectionConfig } from "mysql";
-import { Logger } from "./logger";
+import { Logger } from "logger";
 
 //Exporta la variable logger para el manejo de los logs
 export const logger = new Logger();
