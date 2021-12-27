@@ -1,13 +1,13 @@
 import 'dotenv/config';
 
-import { listadoTokens, logger, DB_CONFIG } from "./controller/config";
+import { listadoTokens, logger, DB_CONFIG, CODIGOS_ESTADO } from "./controller/config";
 import { bbdd_token } from "./controller/lib";
 import { router as index } from "./routes/index";
 import { router as tokens } from "./routes/tokens";
 import { router as datos } from "./routes/datos";
-import { comprobarAcceso } from './controller/serv';
+import { comprobarAcceso, respuesta } from './controller/serv';
 
-import express, { Express } from "express";
+import express, { Express, Response, Request, NextFunction } from "express";
 
 const app: Express = express();
 
@@ -22,6 +22,17 @@ app.use("/tokens", tokens);
 app.use("/datos", datos);
 //Archivos estatics
 app.use(comprobarAcceso, express.static(__dirname + "/public"));
+
+//En caso de que el se pase algun error a traves de la funcion next. Captura, principalmente, los errores lanzados por express.json()
+//eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+    //Si el error es una instancia de SyntaxError, se envia una respuesta con el codigo 400
+    if (err instanceof SyntaxError) { // express.json lanza un SyntaxError si el cuerpo tiene algun error en la sintaxis
+        return respuesta(res, "Error -> " + err.message, CODIGOS_ESTADO.Bad_Request);
+    }
+    //Si algun otro error entra se devolvera con el codigo 500
+    return respuesta(res, "Error -> " + err.message, CODIGOS_ESTADO.Internal_Server_Error);
+});
 
 //Inicia el servidor
 app.listen(process.env.PORT, async () => {
