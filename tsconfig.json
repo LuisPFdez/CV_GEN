@@ -2,10 +2,9 @@
     "compilerOptions": {
         "rootDir": "./src",
         "module": "CommonJS",
-        "target": "ES6",
+        "target": "ES2021",
         "outDir": "./dist",
         "strict": true,
-        "resolveJsonModule": true,
         "removeComments": true,
         "esModuleInterop": true
     },
