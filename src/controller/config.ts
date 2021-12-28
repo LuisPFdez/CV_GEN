@@ -6,6 +6,12 @@ import { ConnectionConfig } from "mysql";
 import { Logger } from "logger";
 
 declare global {
+    //Declara la funcion sustituirValor en la interfaz Array
+    interface Array<T> {
+        sustituirValor(array: Array<T>): void;
+    }
+    //Declara la funcion compilarPlantilla en la interfaz String. Antes se declaraba
+    //en el fichero logger.ts (externalizado como libreria) 
     interface String {
         /**
          * Permite definir una plantilla como string y compilarla al llamar a este metodo
@@ -17,6 +23,14 @@ declare global {
         compilarPlantilla(args: Record<string, unknown>): Function;
     }
 }
+
+//Establece la funcion para sustituir valor
+Array.prototype.sustituirValor = function <T>(array: Array<T>) {
+    //Elimina todos los valores del array
+    this.splice(0);
+    //Añade los valores del nuevo array
+    this.push(...array);
+};
 
 String.prototype.compilarPlantilla = function (this: string, args: Record<string, unknown>): Function {
     //Extrae los nombres de la funcion
@@ -41,21 +55,6 @@ export const DB_CONFIG: ConnectionConfig = {
 };
 
 export const listadoTokens: string[] = [];
-
-declare global {
-    //Declara la funcion sustituirValor en la interfaz Array
-    interface Array<T> {
-        sustituirValor(array: Array<T>): void;
-    }
-}
-
-//Establece la funcion para sustituir valor
-Array.prototype.sustituirValor = function <T>(array: Array<T>) {
-    //Elimina todos los valores del array
-    this.splice(0);
-    //Añade los valores del nuevo array
-    this.push(...array);
-};
 
 //Enum con codigos de estado HTTP
 export enum CODIGOS_ESTADO {
