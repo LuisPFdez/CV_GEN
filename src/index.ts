@@ -31,7 +31,7 @@ if (cluster.isPrimary) {
     }
 
     //En caso de que la variable tenga mas numero de nucleos que el procesador asignara todos los nucleos de este
-    if (env_cpu > cpus().length ) env_cpu = cpus().length;
+    if (env_cpu > cpus().length) env_cpu = cpus().length;
     //En caso de que la variable sea menor a 1, la establece a 1
     else if (env_cpu < 1) env_cpu = 1;
 
@@ -65,8 +65,8 @@ if (cluster.isPrimary) {
     //Ruta para adminstar los tokens
     app.use("/tokens", tokens);
     app.use("/datos", datos);
-    //Archivos estatics
-    app.use(comprobarAcceso, express.static(__dirname + "/public"));
+    //Archivos estaticos
+    app.use("/public", comprobarAcceso, express.static(__dirname + "/public"));
 
     //En caso de que el se pase algun error a traves de la funcion next. Captura, principalmente, los errores lanzados por express.json()
     //eslint-disable-next-line @typescript-eslint/no-unused-vars
