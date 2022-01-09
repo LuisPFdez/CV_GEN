@@ -2,8 +2,7 @@
  * @file Archivo que contine middlewares para el servidor 
  */
 
-import { listadoTokens, logger, DB_CONFIG, CODIGOS_ESTADO } from "./config";
-import { ErrorGeneral } from "../errors/ErrorGeneral";
+import { listadoTokens, DB_CONFIG, CODIGOS_ESTADO, clave_seckey, clave_secreto } from "./config";
 import { borrar_token } from "./lib";
 
 import { NextFunction, Request, Response } from "express";
@@ -55,21 +54,21 @@ function comprobarToken(req: Request, res: Response, next: NextFunction): Respon
     const token = <string>req.header("token-acceso");
     //Comprueba si el token esta en la lista de los tokens validos, en caso contrario lanza un error
     if (!listadoTokens.includes(SHA256(token).toString())) return respuesta(res, "El token de acceso no valido", CODIGOS_ESTADO.Unauthorized);
-    //Comprueba si la variable de entorno es indefinida, en caso de serlo lanza un error
-    if (process.env.SECRETO == undefined) {
-        //Guarda el error en el archivo log
-        logger.error_archivo("Clave de entorno no definida", {}, new ErrorGeneral("La variable de entorno SECRETO no esta definida"));
-        //Devuelve una respuesta con un error
-        return respuesta(res, "Error del servidor", CODIGOS_ESTADO.Internal_Server_Error);
-    }
+
     //Comprueba si el token es valido, en caso de no serlo lanza una excepcion
     try {
         //Obtiene el objeto rutas de el token
-        const { rutas } = <Record<string, unknown>>verify(token, process.env.SECRETO);
-        //Comprueba si alguna de las rutas coincide con la url solicitada, en caso de no devolvera una respuesta indicandolo
-        if (!(<string[]>rutas).some((elemento) => new RegExp(elemento).test(req.originalUrl))) {
+        const { rutas } = <Record<string, unknown>>verify(token, clave_secreto);
+        //Define e inicializa el array de string con las rutas para el metodo en especifico
+        let metodo: string[] = []; //Se inicializa el array para evitar un error de typescript
+        //Concatena las rutas del metodo y las rutas generales a un array vacio.
+        metodo = metodo.concat((<Record<string, string[]>>rutas)[req.method.toUpperCase()], (<Record<string, string[]>>rutas)["GN"]);
+        //Comprueba si alguna de las rutas coincide con la url solicitada (tambien comprueba que el elemento este definido), en caso de no devolvera una respuesta indicandolo
+        if (!metodo.some((elemento: string | undefined) => elemento !== undefined && new RegExp(elemento).test(req.originalUrl))) {
             return respuesta(res, "El token no tiene acceso a la ruta especificada", CODIGOS_ESTADO.Unauthorized);
         }
+        //Continua al siguente middleware
+        return next();
     } catch (e) {
         //Comprueba si el error es de tipo TokenExpiredErrors
         if (e instanceof TokenExpiredError) {
@@ -84,8 +83,6 @@ function comprobarToken(req: Request, res: Response, next: NextFunction): Respon
         //Devuelve una respuesta indicado que el token no es valido
         return respuesta(res, "Error interno del servidor. Comprueba las rutas del token", CODIGOS_ESTADO.Internal_Server_Error);
     }
-    //Continua al siguente middleware
-    return next();
 }
 
 /**
@@ -97,7 +94,7 @@ function comprobarToken(req: Request, res: Response, next: NextFunction): Respon
  */
 function comprobarClave(req: Request, res: Response, next: NextFunction): Response | void {
     //Comprueba si la clave esta declarada en el head y si es la correcta. En caso de ser incorrecta, respondera con un mensaje de error
-    if (req.header("secret-key") == undefined || req.header("secret-key") != process.env.SECKEY) return respuesta(res, "La clave de acceso no es correcta o no ha sido definida, es necesario que la clave del header sea 'secret-key'", CODIGOS_ESTADO.Bad_Request);
+    if (req.header("secret-key") == undefined || req.header("secret-key") != clave_seckey) return respuesta(res, "La clave de acceso no es correcta o no ha sido definida, es necesario que la clave del header sea 'secret-key'", CODIGOS_ESTADO.Bad_Request);
     //Pasa al siguente middleware
     return next();
 }
@@ -111,7 +108,7 @@ function comprobarClave(req: Request, res: Response, next: NextFunction): Respon
  */
 function comprobarAcceso(req: Request, res: Response, next: NextFunction): Response | void {
     //Comprueba si en la cabecera esta la clave secreta, en caso de estar y ser la correcta pasa al siguente middleware
-    if (req.header("secret-key") != undefined && req.header("secret-key") == process.env.SECKEY) return next();
+    if (req.header("secret-key") != undefined && req.header("secret-key") == clave_seckey) return next();
     //En caso de no estar declarada la clave comprueba si el Token esta declarado
     return comprobarToken(req, res, next);
 

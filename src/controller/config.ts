@@ -4,6 +4,7 @@
 
 import { ConnectionConfig } from "mysql";
 import { Logger } from "logger";
+import { ErrorGeneral } from "../errors/ErrorGeneral";
 
 declare global {
     //Declara la funcion sustituirValor en la interfaz Array
@@ -32,6 +33,7 @@ Array.prototype.sustituirValor = function <T>(array: Array<T>) {
     this.push(...array);
 };
 
+//Establece la funcion para compilar las plantillas de javascript
 String.prototype.compilarPlantilla = function (this: string, args: Record<string, unknown>): Function {
     //Extrae los nombres de la funcion
     const nombres: string[] = Object.keys(args);
@@ -65,3 +67,15 @@ export enum CODIGOS_ESTADO {
     Internal_Server_Error = 500
 }
 
+//Comprueba si las variables SECRETO y SECKEY estan definidas. En caso de no estarlo lanza un error (El error finalizaria la conexion).
+if (process.env.SECRETO === undefined || process.env.SECKEY === undefined) {
+    const error = new ErrorGeneral("La variable de entorno SECRETO o SECKEY no esta definida");
+    //Guarda el error en el archivo log
+    logger.error_archivo("Claves de entorno no definidas", {}, error);
+    //Devuelve una respuesta con un error
+    throw error;
+}
+
+//Exporta las constantes de las claves SECRETO y SECKEY
+export const clave_secreto: string = process.env.SECRETO;
+export const clave_seckey: string = process.env.SECKEY;

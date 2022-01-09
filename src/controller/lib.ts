@@ -168,7 +168,7 @@ async function html_a_pdf(argumentos: Array<string>, opciones: SpawnOptions = {}
     };
 
     //Ejecuta un subproceso, si no han ninguna variable de entorno ejecuta el programa por defecto, wkhtmltopdf
-    const proceso = spawnSync(process.env.PDF_PROG!, argumentos, opciones);
+    const proceso = spawnSync(process.env.PDF_PROG || "wkhtmltopdf", argumentos, opciones);
 
     //Al finalizar compruba si la apliacion ha tenido algun error al ejecutarse o el programa ha salido un codigo distinto de 0
     if (proceso.error) {
