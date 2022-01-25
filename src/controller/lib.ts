@@ -3,13 +3,15 @@
  */
 import { Render, MDatos } from "./render";
 import { ErrorMysql } from "../errors/ErrorMysql";
-import { CODIGOS_ESTADO, DB_CONFIG } from "../config/config";
+import { CODIGOS_ESTADO, DB_CONFIG, ruta_tmp } from "../config/config";
+import { ErrorGeneral } from "../errors/ErrorGeneral";
 
 import { SpawnOptions, spawnSync } from "child_process";
-import { writeFileSync } from "fs";
+import { writeFileSync, existsSync } from "fs";
 import { createConnection, ConnectionConfig, MysqlError } from "mysql";
 import { promisify } from "util";
 import { SHA256 } from "crypto-js";
+import { join } from "path";
 
 /**
  * Funcion que se encarga de convertir los datos de las tablas de una base de datos a json
@@ -165,7 +167,7 @@ async function json_a_html(json: MDatos, id: string = "ID", plantilla: string = 
 function html_a_pdf(argumentos: Array<string>, opciones: SpawnOptions = {}, callback?: (error: number | string) => void): void {
     //Funcion para manejar los errores en caso de no haber pasado pasado la funcion por parametro se asigna una funcion por defecto
     callback = callback || function (error: number | string): void {
-        throw Error("La aplicacion ha fallado, numero o mensaje de error: " + error);
+        throw new ErrorGeneral("La aplicacion ha fallado, numero o mensaje de error: " + error);
     };
 
     //Ejecuta un subproceso, si no han ninguna variable de entorno ejecuta el programa por defecto, wkhtmltopdf
@@ -263,14 +265,25 @@ async function ejecutar_multiples_consultas(consultas: Record<string | number, s
 }
 
 async function copia_tabla(tabla: string, nombreArchivo: string, callback?: (error: number | string) => void) {
+    //Funcion para manejar los errores en caso de no haber pasado pasado la funcion por parametro se asigna una funcion por defecto
     callback = callback || function (error: number | string): void {
-        throw Error("La aplicacion ha fallado, numero o mensaje de error: " + error);
+        throw new ErrorGeneral("La aplicacion ha fallado, numero o mensaje de error: " + error);
     };
+
+    //Asigna la ruta absoluta para el fichero a nombreArchivo
+    nombreArchivo = join(ruta_tmp, nombreArchivo);
+    //Comprueba si la existe algun fichero en el directorio 
+    if (existsSync(nombreArchivo)){
+        //LLama a la funcion de error y le pasa el mensaje
+        callback("El fichero ya existe");
+    }
+
     //Variables 
     const usua = DB_CONFIG.user || "";
     const cont = DB_CONFIG.password || "";
     const DB = DB_CONFIG.database || "";
 
+    //Ejecuta el proceso
     const proceso = spawnSync('mysqldump', ['-u', usua, '-p', cont, DB, tabla]);
 
     //Al finalizar comprueba si la apliacion ha tenido algun error al ejecutarse o el programa ha salido un codigo distinto de 0
@@ -281,6 +294,8 @@ async function copia_tabla(tabla: string, nombreArchivo: string, callback?: (err
         //Le pasa el numero de salida de la aplicacion al callback
         callback(proceso.status);
     }
+
+    //Guarda la copia de la tabla en el archivo. 
     writeFileSync(nombreArchivo, proceso.stdout);
 }
 

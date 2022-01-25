@@ -5,6 +5,9 @@
 import { ConnectionConfig } from "mysql";
 import { Logger } from "logger";
 import { ErrorGeneral } from "../errors/ErrorGeneral";
+import { existsSync, accessSync, lstatSync } from "fs";
+import { resolve } from "path";
+import { W_OK, R_OK } from "constants";
 
 declare global {
     //Declara la funcion sustituirValor en la interfaz Array
@@ -69,11 +72,35 @@ export enum CODIGOS_ESTADO {
 
 //Comprueba si las variables SECRETO y SECKEY estan definidas. En caso de no estarlo lanza un error (El error finalizaria la conexion).
 if (process.env.SECRETO === undefined || process.env.SECKEY === undefined) {
+    //Crea una instancia del error 
     const error = new ErrorGeneral("La variable de entorno SECRETO o SECKEY no esta definida");
     //Guarda el error en el archivo log
     logger.error_archivo("Claves de entorno no definidas", {}, error);
     //Devuelve una respuesta con un error
     throw error;
+}
+
+//Constante para la ruta de la carpeta temporal
+export const ruta_tmp: string = resolve(process.env.RUTA_TMP === undefined ? "/tmp" : process.env.RUTA_TMP);
+
+//Comprueba si la ruta existe y si es un directorio
+if (!existsSync(ruta_tmp) || !lstatSync(ruta_tmp).isDirectory()) {
+    //Crea una instancia del error 
+    const error = new ErrorGeneral("La ruta no existe o no es un directorio");
+    //Guarda el error en el archivo log
+    logger.error_archivo("Fallo al comprobar la ruta", {}, error);
+    //Devuelve una respuesta con un error
+    throw error;
+}
+
+try {
+    //Comprueba los permisos de lectura y escritura de la ruta
+    accessSync(ruta_tmp, W_OK | R_OK);
+} catch (e) {
+    //Guarda un registro en el log
+    logger.error_archivo("Fallo al comprobar el acceso", {}, <Error>e);
+    //Lanza el error
+    throw new ErrorGeneral("No hay acceso a la carpeta temporal");
 }
 
 //Exporta las constantes de las claves SECRETO y SECKEY
