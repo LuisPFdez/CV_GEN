@@ -1,4 +1,4 @@
-import { clave_secreto, CODIGOS_ESTADO, DB_CONFIG, listadoTokens, logger } from "../controller/config";
+import { clave_secreto, CODIGOS_ESTADO, DB_CONFIG, listadoTokens, logger } from "../config/config";
 import { bbdd_token, token_bbdd, borrar_token } from '../controller/lib';
 import { bodyDefinido, comprobarClave, respuesta } from '../controller/serv';
 

@@ -1,5 +1,5 @@
 //Importa la variable logger del index
-import { logger, DB_CONFIG, CODIGOS_ESTADO } from '../controller/config';
+import { logger, DB_CONFIG, CODIGOS_ESTADO } from '../config/config';
 
 //Importa las funciones de librerias locales
 import { bbdd_a_json, ejecutar_consulta, ejecutar_multiples_consultas, json_a_html } from "../controller/lib";
@@ -19,14 +19,16 @@ const plantillaPre = "temp1.hbs";
 //Rutas GET
 
 //Devuelve la plantilla renderizada, con la informacion de la base de datos 
-router.get("/bbdd_html", comprobarAcceso, async (req: Request, res: Response): Promise<Response> => {
+router.get("/bbdd_html", async (req: Request, res: Response): Promise<Response> => {
     try {
         //Comprueba si se ha pasado por parametro la plantilla, en caso contrario asigna la plantilla por defecto
         const plantilla: string = <string>req.query.plantilla || plantillaPre;
-
+        
         //Renderiza el html, obtiene la informacion de la base de datos y luego llama a rendezar plantilla, teniendo como identificador
         //"ID", y la ruta relativa a la plantilla
         const html = await json_a_html(await bbdd_a_json(DB_CONFIG), "ID", rutaPlantillas + plantilla);
+        //En caso de acceptar html devuelve el html. En caso contrario devuelve el JSON
+        if (req.accepts("html")) return res.send(html);
         //Devuelve el html con el html renderizado y un codigo de respuesta 200
         return respuesta(res, html, CODIGOS_ESTADO.OK);
 

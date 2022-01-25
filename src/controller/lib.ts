@@ -3,9 +3,10 @@
  */
 import { Render, MDatos } from "./render";
 import { ErrorMysql } from "../errors/ErrorMysql";
-import { CODIGOS_ESTADO } from "./config";
+import { CODIGOS_ESTADO, DB_CONFIG } from "../config/config";
 
 import { SpawnOptions, spawnSync } from "child_process";
+import { writeFileSync } from "fs";
 import { createConnection, ConnectionConfig, MysqlError } from "mysql";
 import { promisify } from "util";
 import { SHA256 } from "crypto-js";
@@ -161,7 +162,7 @@ async function json_a_html(json: MDatos, id: string = "ID", plantilla: string = 
  * @param callback, funcion, recibe por parametros error ( number o string ) y no devuelve nada, opcional. Al ser una funcion asincrona es 
  * recomendable que se lanze una excepcion para capturarla como promesa.
  */
-async function html_a_pdf(argumentos: Array<string>, opciones: SpawnOptions = {}, callback?: (error: number | string) => void): Promise<void> {
+function html_a_pdf(argumentos: Array<string>, opciones: SpawnOptions = {}, callback?: (error: number | string) => void): void {
     //Funcion para manejar los errores en caso de no haber pasado pasado la funcion por parametro se asigna una funcion por defecto
     callback = callback || function (error: number | string): void {
         throw Error("La aplicacion ha fallado, numero o mensaje de error: " + error);
@@ -170,7 +171,7 @@ async function html_a_pdf(argumentos: Array<string>, opciones: SpawnOptions = {}
     //Ejecuta un subproceso, si no han ninguna variable de entorno ejecuta el programa por defecto, wkhtmltopdf
     const proceso = spawnSync(process.env.PDF_PROG || "wkhtmltopdf", argumentos, opciones);
 
-    //Al finalizar compruba si la apliacion ha tenido algun error al ejecutarse o el programa ha salido un codigo distinto de 0
+    //Al finalizar comprueba si la apliacion ha tenido algun error al ejecutarse o el programa ha salido un codigo distinto de 0
     if (proceso.error) {
         //Le pasa el mensaje del error al callback
         callback(proceso.error.message);
@@ -178,10 +179,6 @@ async function html_a_pdf(argumentos: Array<string>, opciones: SpawnOptions = {}
         //Le pasa el numero de salida de la aplicacion al callback
         callback(proceso.status);
     }
-
-    //Devuelve una resolucion para la funcion (void)
-    return Promise.resolve();
-
 }
 
 /**
@@ -252,7 +249,7 @@ async function ejecutar_multiples_consultas(consultas: Record<string | number, s
             //Destruye la conexion con la base de datos, evita las operaciones restates
             conexion.end();
             //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
-            throw new ErrorMysql("Error (" + error.name + "): " + error.message + ". Consulta -> " + consulta, CODIGOS_ESTADO.Internal_Server_Error);
+            throw new ErrorMysql("Error (" + error.name + "): " + error.message + ". Consulta -> " + oConsultas[consulta], CODIGOS_ESTADO.Internal_Server_Error);
         }));
     });
     //Espera a que todas las consultas de la base de datos terminen
@@ -265,4 +262,26 @@ async function ejecutar_multiples_consultas(consultas: Record<string | number, s
     return datos;
 }
 
-export { bbdd_a_json, token_bbdd, borrar_token, bbdd_token, json_a_html, html_a_pdf, ejecutar_consulta, ejecutar_multiples_consultas };
+async function copia_tabla(tabla: string, nombreArchivo: string, callback?: (error: number | string) => void) {
+    callback = callback || function (error: number | string): void {
+        throw Error("La aplicacion ha fallado, numero o mensaje de error: " + error);
+    };
+    //Variables 
+    const usua = DB_CONFIG.user || "";
+    const cont = DB_CONFIG.password || "";
+    const DB = DB_CONFIG.database || "";
+
+    const proceso = spawnSync('mysqldump', ['-u', usua, '-p', cont, DB, tabla]);
+
+    //Al finalizar comprueba si la apliacion ha tenido algun error al ejecutarse o el programa ha salido un codigo distinto de 0
+    if (proceso.error) {
+        //Le pasa el mensaje del error al callback
+        callback(proceso.error.message);
+    } else if (proceso.status) {
+        //Le pasa el numero de salida de la aplicacion al callback
+        callback(proceso.status);
+    }
+    writeFileSync(nombreArchivo, proceso.stdout);
+}
+
+export { bbdd_a_json, token_bbdd, borrar_token, bbdd_token, json_a_html, html_a_pdf, ejecutar_consulta, ejecutar_multiples_consultas, copia_tabla };

@@ -8,7 +8,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Curriculum 1</title>
     <link rel="stylesheet" href="/public/style.css">
-    
+    <link rel="stylesheet" href="/bootstrap/bootstrap-icons.css">
+    <link rel="stylesheet" href="/bootstrap/bootstrap-icons.svg">
 </head>
 
 <body>
@@ -32,13 +33,30 @@
             </article>
             <ul class="lista-1">    
                 {{#IT-IFM Datos 'and' 'ID' '!=' 'NOM' 'ID' '!=' 'DES'}}
-                    <li>
-                        <span class="destacado">{{Nombre}}</span>
-                        {{Descripcion}}
-                        <br>
-                    </li>
+                    {{#IF-REG ID '! /^LNK-/i'}}
+                        <li>
+                            <span class="destacado">{{Nombre}}</span>
+                            {{Descripcion}}
+                            <br>
+                        </li>
+                    {{/IF-REG}}
                 {{/IT-IFM}}
             </ul>
+            <article class="contacto">
+                {{#IDB Datos 'LNK-EMAIL'}}
+                    <a href="{{Descripcion}}"><i class="bi bi-envelope"></i></a>
+                {{/IDB}}
+                {{#IDB Datos 'LNK-FACEBOOK'}}
+                    <a href="{{Descripcion}}"><i class="bi bi-meta"></i></a>
+                {{/IDB}}
+                {{#IDB Datos 'LNK-INSTAGRAM'}}
+                    <a href="{{Descripcion}}"><i class="bi bi-instagram"></i></a>
+                {{/IDB}}
+                {{#IDB Datos 'LNK-TWITTER'}}
+                    <a href="{{Descripcion}}"><i class="bi bi-twitter"></i></a>
+                {{/IDB}}
+            </article>
+            
         </section>
         <section>
             <article class="titulo-seccion">

@@ -1,5 +1,5 @@
 //Importa la variable logger del index
-import { logger, DB_CONFIG, CODIGOS_ESTADO } from '../controller/config';
+import { logger, DB_CONFIG, CODIGOS_ESTADO } from '../config/config';
 import { ErrorMysql } from '../errors/ErrorMysql';
 
 //Importa las funciones de librerias locales
@@ -122,7 +122,7 @@ router.put("/:tabla?", bodyDefinido, async (req: Request, res: Response) => {
         }
 
         //Ejecuta el array de consultas
-        ejecutar_multiples_consultas(consultas, DB_CONFIG);
+        await ejecutar_multiples_consultas(consultas, DB_CONFIG);
 
         //Devuelve un mensaje indicando que todo ha ido bien
         return respuesta(res, "Datos creados correctamente correcta", CODIGOS_ESTADO.OK);
@@ -145,7 +145,7 @@ router.put("/:tabla?", bodyDefinido, async (req: Request, res: Response) => {
 });
 
 //----------------------------------------------------------------------------------
-router.post("/:tabla?", async (req: Request, res: Response): Promise<Response> => {
+router.post("/:tabla?", bodyDefinido, async (req: Request, res: Response): Promise<Response> => {
     try {
         //Array con las consultas
         const consultas: Array<string> = [];
@@ -164,7 +164,7 @@ router.post("/:tabla?", async (req: Request, res: Response): Promise<Response> =
                 //Recorre el objeto valores. 
                 Object.keys(query.valores).forEach((valor) => {
                     //Las claves del objeto corresponden con la columna. Y su valor con el nuevo valor de esta
-                    plantilla_consulta = `${plantilla_consulta} ${valor} = ${query.valores[valor]}, `;
+                    plantilla_consulta = `${plantilla_consulta} ${valor} = '${query.valores[valor]}', `;
                 });
 
                 //Elimina la ultima coma y añade un espacio
@@ -199,7 +199,7 @@ router.post("/:tabla?", async (req: Request, res: Response): Promise<Response> =
                 //Recorre el objeto valores. 
                 Object.keys(query.valores).forEach((valor) => {
                     //Las claves del objeto corresponden con la columna. Y su valor con el nuevo valor de esta
-                    plantilla_consulta = `${plantilla_consulta} ${valor} = ${query.valores[valor]}, `;
+                    plantilla_consulta = `${plantilla_consulta} ${valor} = '${query.valores[valor]}', `;
                 });
 
                 //Elimina la ultima coma y añade un espacio
@@ -223,7 +223,7 @@ router.post("/:tabla?", async (req: Request, res: Response): Promise<Response> =
         }
 
         //Ejecuta el array de consultas
-        ejecutar_multiples_consultas(consultas, DB_CONFIG);
+        await ejecutar_multiples_consultas(consultas, DB_CONFIG);
 
         //Devuelve un mensaje indicando que todo ha ido bien
         return respuesta(res, "Datos actualizados correctamente correcta", CODIGOS_ESTADO.OK);
@@ -245,7 +245,7 @@ router.post("/:tabla?", async (req: Request, res: Response): Promise<Response> =
     }
 });
 
-router.delete("/:tabla?", async (req: Request, res: Response): Promise<Response> => {
+router.delete("/:tabla?", bodyDefinido, async (req: Request, res: Response): Promise<Response> => {
     try {
         //Array con las consultas
         const consultas: Array<string> = [];
@@ -307,7 +307,7 @@ router.delete("/:tabla?", async (req: Request, res: Response): Promise<Response>
         }
 
         //Ejecuta el array de consultas
-        ejecutar_multiples_consultas(consultas, DB_CONFIG);
+        await ejecutar_multiples_consultas(consultas, DB_CONFIG);
 
         //Devuelve un mensaje indicando que todo ha ido bien
         return respuesta(res, "Datos eliminados correctamente correcta", CODIGOS_ESTADO.OK);

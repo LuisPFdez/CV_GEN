@@ -2,7 +2,7 @@
 import { existsSync, lstatSync, readFileSync, } from "fs";
 import Handlebars from "handlebars";
 import { join, resolve } from "path";
-import {ArchivoNoEncontrado} from "../errors/ArchivoNoEncontrado";
+import { ArchivoNoEncontrado } from "../errors/ArchivoNoEncontrado";
 import { ErrorRenderizado } from "../errors/ErrorRenderizado";
 
 /**
@@ -45,6 +45,23 @@ export class Render {
 
             //Devuelve y renderiza la respuesta
             return options.fn(datos);
+        });
+
+        /**
+         * Condicional que permite el uso de regex para comparar con el valor. El primer valor seria el campo para comparar. El
+         * segundo la expresion regular
+         */
+        Handlebars.registerHelper("IF-REG", function (this: unknown, campo, expr, options): string | null {
+            //Comprueba que el objeto no sea undefined o no sea un array
+            if (campo === undefined) return "El campo es undefined";
+
+            //Expresion para validar
+            if (new Function(`return ${expr}.test('${campo}')`)()) {
+                //Devuelve la respuesta
+                return options.fn(this);
+            }
+            //Devuelve una respuesta vacia
+            return null;
         });
 
         /**
@@ -115,12 +132,12 @@ export class Render {
             return res;
 
         });
-        
+
         /**
          * Funcion para iterar todos los objetos que cumplan varias condiciones, el numero parametros del array hay de ser multiplo de tres, mas uno, que indica se cada grupo el tipo de operador.
          * Las condiciones han de ser por grupos de tres, el primer valor de ese grupo ha de ser la propiedad, el segundo valor la condicion y el tercer valor 
          */
-         Handlebars.registerHelper("IT-IFM", (objeto, ...args): string => {
+        Handlebars.registerHelper("IT-IFM", (objeto, ...args): string => {
             //Comprueba que el objeto no sea undefined o no sea un array
             if (objeto === undefined || !Array.isArray(objeto)) return "La tabla no existe o no es un array de objetos";
 
@@ -130,33 +147,33 @@ export class Render {
             const options = args.slice(-1)[0];
             //Extrae todos los demas argumentos 
             let condicionales = args.slice(0, -1);
-            
+
             //Comprueba si la longitud de los condicionales 
-            if ( (condicionales.length - 1) % 3 != 0) {
+            if ((condicionales.length - 1) % 3 != 0) {
                 //Devuelve un mensaje de error
                 return "El objecto con los condicionales ha de ser una array y cada condicional dividirse en tres, mas el primer elemento indicando el tipo";
             }
-            
+
             //Comprueba el primer argumento, en funcion del valor asigna el operador en la variable tipo
-            const tipo = condicionales[0].toLowerCase() == "and" ? " && " :  "|| " ;
+            const tipo = condicionales[0].toLowerCase() == "and" ? " && " : "|| ";
             //Modifica el valor de los condicionales eliminando el primer argumento
             condicionales = condicionales.slice(1);
-            
+
             //Guarda la longitud de condicionales
             const longObjeto = condicionales.length;
             //Variable que almacenara la expresion
             let expresion = "";
 
             //Recorre los argumentos de tres en tres, elimina los tres argumentos finales para evitar añadir el operador
-            for (let i = 0; i < longObjeto - 3; i+=3 ){
+            for (let i = 0; i < longObjeto - 3; i += 3) {
                 //Crea la express con los tres argumentos y concatenando al final el operador
-                expresion += "'${"+condicionales[i]+"}' "+condicionales[i+1]+" '"+condicionales[i+2]+"'"+tipo;
+                expresion += "'${" + condicionales[i] + "}' " + condicionales[i + 1] + " '" + condicionales[i + 2] + "'" + tipo;
             }
 
             //Crea la express con los tres argumentos finales
-            expresion += "'${"+condicionales[longObjeto - 3]+"}' "+condicionales[longObjeto - 2]+" '"+condicionales[longObjeto - 1]+"'";
+            expresion += "'${" + condicionales[longObjeto - 3] + "}' " + condicionales[longObjeto - 2] + " '" + condicionales[longObjeto - 1] + "'";
 
-            
+
             for (const obj of objeto) {
                 //Funcion para evaluar la expresion compuesta, primero compila la plantilla apartir del objeto y la expression resultante la devuelve 
                 const eva = new Function(`return ${expresion.compilarPlantilla(obj)}`);
@@ -164,9 +181,9 @@ export class Render {
                 if (eva()) {
                     //Concatena el objeto renderizado a la respuesta
                     res += options.fn(obj);
-                } 
+                }
             }
-            
+
             //Devuelve la respuesta
             return res;
         });
@@ -226,7 +243,7 @@ export class Render {
         }
         catch (e) {
             //En caso de error al renderizar lanza una excepcion
-            throw new ErrorRenderizado("Error al generar la plantilla: " + (<Error> e).message, 500);
+            throw new ErrorRenderizado("Error al generar la plantilla: " + (<Error>e).message, 500);
         }
     }
 
@@ -255,7 +272,7 @@ export class Render {
         }
         catch (e) {
             //En caso de error al renderizar lanza una excepcion
-            throw new ErrorRenderizado("Error al generar la plantilla: " + (<Error> e).message, 500);
+            throw new ErrorRenderizado("Error al generar la plantilla: " + (<Error>e).message, 500);
         }
     }
 }

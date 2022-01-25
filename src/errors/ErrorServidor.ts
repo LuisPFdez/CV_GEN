@@ -2,7 +2,7 @@
  * Clase abstracta que define los todos los errores del servidor
  */
 
-import { CODIGOS_ESTADO } from "../controller/config";
+import { CODIGOS_ESTADO } from "../config/config";
 
 export abstract class ErrorServidor extends Error {
 

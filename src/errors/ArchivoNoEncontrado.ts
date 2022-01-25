@@ -2,7 +2,7 @@
  * Error para las plantillas que no se encuentran
  */
 
-import { CODIGOS_ESTADO } from "../controller/config";
+import { CODIGOS_ESTADO } from "../config/config";
 import { ErrorServidor } from "./ErrorServidor";
 
 export class ArchivoNoEncontrado extends ErrorServidor {

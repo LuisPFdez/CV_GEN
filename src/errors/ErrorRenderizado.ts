@@ -2,7 +2,7 @@
  * Error para el renderizado de handlebars
 */
 
-import { CODIGOS_ESTADO } from "../controller/config";
+import { CODIGOS_ESTADO } from "../config/config";
 import { ErrorServidor } from "./ErrorServidor";
 
 export class ErrorRenderizado extends ErrorServidor{

@@ -2,7 +2,7 @@
  * @file Archivo que contine middlewares para el servidor 
  */
 
-import { listadoTokens, DB_CONFIG, CODIGOS_ESTADO, clave_seckey, clave_secreto } from "./config";
+import { listadoTokens, DB_CONFIG, CODIGOS_ESTADO, clave_seckey, clave_secreto } from "../config/config";
 import { borrar_token } from "./lib";
 
 import { NextFunction, Request, Response } from "express";

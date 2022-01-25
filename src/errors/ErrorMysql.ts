@@ -2,7 +2,7 @@
  * Error para las conexiones de MySQL
 */
 
-import { CODIGOS_ESTADO } from "../controller/config";
+import { CODIGOS_ESTADO } from "../config/config";
 import { ErrorServidor } from "./ErrorServidor";
 
 export class ErrorMysql extends ErrorServidor {

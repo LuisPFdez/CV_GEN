@@ -2,7 +2,7 @@
  * Error general para el servidor
 */
 
-import { CODIGOS_ESTADO } from "../controller/config";
+import { CODIGOS_ESTADO } from "../config/config";
 import { ErrorServidor } from "./ErrorServidor";
 
 export class ErrorGeneral extends ErrorServidor {

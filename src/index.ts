@@ -1,11 +1,13 @@
 import 'dotenv/config';
 
-import { listadoTokens, logger, DB_CONFIG, CODIGOS_ESTADO } from "./controller/config";
+import { listadoTokens, logger, DB_CONFIG, CODIGOS_ESTADO } from './config/config';
 import { bbdd_token } from "./controller/lib";
 import { router as index } from "./routes/index";
 import { router as tokens } from "./routes/tokens";
-import { router as datos } from "./routes/datos";
-import { comprobarAcceso, respuesta } from './controller/serv';
+import { router as base_datos } from "./routes/base_datos";
+import { router as modulos } from "./routes/modulos";
+import { router as info } from "./routes/info";
+import { respuesta } from './controller/serv';
 
 import express, { Express, Response, Request, NextFunction } from "express";
 
@@ -62,11 +64,14 @@ if (cluster.isPrimary) {
 
     //Ruta principal
     app.use(index);
+    //Ruta para incluir ficheros y carpetas estaticas. Principalmente de modulos
+    app.use(modulos);
     //Ruta para adminstar los tokens
     app.use("/tokens", tokens);
-    app.use("/datos", datos);
-    //Archivos estaticos
-    app.use("/public", comprobarAcceso, express.static(__dirname + "/public"));
+    //Ruta para administrar la base de datos 
+    app.use("/base_datos", base_datos);
+    //Ruta para la informacion de la api
+    app.use("info", info);
 
     //En caso de que el se pase algun error a traves de la funcion next. Captura, principalmente, los errores lanzados por express.json()
     //eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -75,6 +80,7 @@ if (cluster.isPrimary) {
         if (err instanceof SyntaxError) { // express.json lanza un SyntaxError si el cuerpo tiene algun error en la sintaxis
             return respuesta(res, "Error -> " + err.message, CODIGOS_ESTADO.Bad_Request);
         }
+        logger.error_archivo("Error servidor", {}, err);
         //Si algun otro error entra se devolvera con el codigo 500
         return respuesta(res, "Error -> " + err.message, CODIGOS_ESTADO.Internal_Server_Error);
     });
