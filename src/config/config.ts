@@ -103,6 +103,18 @@ try {
     throw new ErrorGeneral("No hay acceso a la carpeta temporal");
 }
 
+//Comprueba si la codificacion es valida
+if (process.env.CODIFICACION === undefined || !Buffer.isEncoding(process.env.CODIFICACION)) {
+    //Crea una instancia del error 
+    const error = new ErrorGeneral("La codificacion no es valida");
+    //Guarda el error en el archivo log
+    logger.error_archivo("Fallo con la codificacion", {}, error);
+    //Devuelve una respuesta con un error
+    throw error;
+}
+//Codificacion para la aplicacion
+export const codificacion: BufferEncoding = process.env.CODIFICACION;
+
 //Exporta las constantes de las claves SECRETO y SECKEY
 export const clave_secreto: string = process.env.SECRETO;
 export const clave_seckey: string = process.env.SECKEY;

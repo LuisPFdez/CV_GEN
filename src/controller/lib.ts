@@ -3,12 +3,13 @@
  */
 import { Render, MDatos } from "./render";
 import { ErrorMysql } from "../errors/ErrorMysql";
-import { CODIGOS_ESTADO, DB_CONFIG, ruta_tmp } from "../config/config";
+import { codificacion, CODIGOS_ESTADO, DB_CONFIG, ruta_tmp } from "../config/config";
 import { ErrorGeneral } from "../errors/ErrorGeneral";
 
 import { SpawnOptions, spawnSync } from "child_process";
-import { writeFileSync, existsSync } from "fs";
+import { writeFileSync, existsSync, readFileSync, accessSync } from "fs";
 import { createConnection, ConnectionConfig, MysqlError } from "mysql";
+import { R_OK } from "constants";
 import { promisify } from "util";
 import { SHA256 } from "crypto-js";
 import { join } from "path";
@@ -264,7 +265,7 @@ async function ejecutar_multiples_consultas(consultas: Record<string | number, s
     return datos;
 }
 
-async function copia_tabla(tabla: string, nombreArchivo: string, callback?: (error: number | string) => void) {
+function copia_tabla(tabla: string, nombreArchivo: string, callback?: (error: number | string) => void): void {
     //Funcion para manejar los errores en caso de no haber pasado pasado la funcion por parametro se asigna una funcion por defecto
     callback = callback || function (error: number | string): void {
         throw new ErrorGeneral("La aplicacion ha fallado, numero o mensaje de error: " + error);
@@ -273,18 +274,18 @@ async function copia_tabla(tabla: string, nombreArchivo: string, callback?: (err
     //Asigna la ruta absoluta para el fichero a nombreArchivo
     nombreArchivo = join(ruta_tmp, nombreArchivo);
     //Comprueba si la existe algun fichero en el directorio 
-    if (existsSync(nombreArchivo)){
+    if (existsSync(nombreArchivo)) {
         //LLama a la funcion de error y le pasa el mensaje
         callback("El fichero ya existe");
     }
 
-    //Variables 
+    //Variables para la copia de la base de datos
     const usua = DB_CONFIG.user || "";
     const cont = DB_CONFIG.password || "";
     const DB = DB_CONFIG.database || "";
 
     //Ejecuta el proceso
-    const proceso = spawnSync('mysqldump', ['-u', usua, '-p', cont, DB, tabla]);
+    const proceso = spawnSync('mysqldump', ['-u', usua, `-p${cont}`, DB, tabla]);
 
     //Al finalizar comprueba si la apliacion ha tenido algun error al ejecutarse o el programa ha salido un codigo distinto de 0
     if (proceso.error) {
@@ -296,7 +297,35 @@ async function copia_tabla(tabla: string, nombreArchivo: string, callback?: (err
     }
 
     //Guarda la copia de la tabla en el archivo. 
-    writeFileSync(nombreArchivo, proceso.stdout);
+    writeFileSync(nombreArchivo, proceso.stdout, {encoding: codificacion});
 }
 
-export { bbdd_a_json, token_bbdd, borrar_token, bbdd_token, json_a_html, html_a_pdf, ejecutar_consulta, ejecutar_multiples_consultas, copia_tabla };
+/**
+ * Restablece los datos de una tabla apartir de un archivo
+ */
+async function restablecer_tabla(nombreArchivo: string): Promise<void> {
+    //Ruta absoluta del archivo
+    nombreArchivo = join(ruta_tmp, nombreArchivo);
+    //Comprueba si el archivo existe 
+    if (existsSync(nombreArchivo)) {
+        //Comprueba el acceso de lectura del archivo
+        accessSync(nombreArchivo, R_OK);
+        //Lee el archivo y almacena la informacion en la variable datos archivo.
+        const datos_archivo = readFileSync(nombreArchivo, {encoding: codificacion});
+        //Crea la conexion, establece la opcion de multiples consultas 
+        const conexion = createConnection({ multipleStatements: true, ...DB_CONFIG });
+        //Establece la funcion conexion.query para permitir el uso de promesas, se vincula el objeto conexion
+        const query = promisify(conexion.query).bind(conexion);
+        //Ejecuta el query a partir de las consultas del archivo
+        await query(datos_archivo).catch((error: MysqlError) => {
+            //Destruye la conexion con la base de datos.
+            conexion.end();
+            //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
+            throw new ErrorMysql("Error (" + error.name + "): " + error.message, CODIGOS_ESTADO.Internal_Server_Error);
+        });
+        //Destruye la conexion con la base de datos.
+        conexion.end();
+    }
+}
+
+export { bbdd_a_json, token_bbdd, borrar_token, bbdd_token, json_a_html, html_a_pdf, ejecutar_consulta, ejecutar_multiples_consultas, copia_tabla, restablecer_tabla };
