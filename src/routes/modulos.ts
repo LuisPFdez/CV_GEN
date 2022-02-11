@@ -14,7 +14,7 @@ router.use("/public", express.static(__dirname + "/../public"));
 router.use("/bootstrap", express.static(__dirname + "/../../node_modules/bootstrap/dist"));
 //Archivos estaticos para bootstrap-icons
 router.use("/bootstrap/fonts", express.static(__dirname + "/../../node_modules/bootstrap-icons/font/fonts"));
-router.use("/bootstrap/bootstrap-icons.css", (_req: Request, res: Response) => res.sendFile(resolve("/../../node_modules/bootstrap-icons/font/bootstrap-icons.css")));
-router.use("/bootstrap/bootstrap-icons.svg", (_req: Request, res: Response) => res.sendFile(resolve("/../../node_modules/bootstrap-icons/bootstrap-icons.svg")));
+router.use("/bootstrap/bootstrap-icons.css", (_req: Request, res: Response) => res.sendFile(resolve("node_modules/bootstrap-icons/font/bootstrap-icons.css")));
+router.use("/bootstrap/bootstrap-icons.svg", (_req: Request, res: Response) => res.sendFile(resolve("node_modules/bootstrap-icons/bootstrap-icons.svg")));
 //Archivos estaticos de highlight.js
 router.use("/bootstrap/fonts", express.static(__dirname + "/../../node_modules/bootstrap-icons/font/fonts"));

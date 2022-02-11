@@ -71,7 +71,7 @@ if (cluster.isPrimary) {
     //Ruta para administrar la base de datos 
     app.use("/base_datos", base_datos);
     //Ruta para la informacion de la api
-    app.use("info", info);
+    app.use("/info", info);
 
     //En caso de que el se pase algun error a traves de la funcion next. Captura, principalmente, los errores lanzados por express.json()
     //eslint-disable-next-line @typescript-eslint/no-unused-vars
