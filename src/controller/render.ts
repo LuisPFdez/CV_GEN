@@ -1,14 +1,14 @@
 
 import { existsSync, lstatSync, readFileSync, } from "fs";
 import Handlebars from "handlebars";
-import { join, resolve } from "path";
+import { resolve, basename } from "path";
 import { ArchivoNoEncontrado } from "../errors/ArchivoNoEncontrado";
 import { ErrorRenderizado } from "../errors/ErrorRenderizado";
 
 /**
  Tipo que definie un objecto compuesto por un string como clave y un array como valor, el array a su vez se compone de otro objeto
  */
-export type MDatos = Record<string, Array<Record<string, string>>>;
+export type MDatos = Record<string, Array<Record<string, string>>> | Record<string, unknown>;
 
 /**
  * Clase para renderizar las plantillas de Handlebars
@@ -25,7 +25,7 @@ export class Render {
      * @param id String, identificador del grupo de datos
      * @param plantilla String, ruta de la plantilla que se va a renderizar
      */
-    constructor(datos: MDatos, id: string, plantilla: string = "dist/templates/temp1.hbs") {
+    constructor(datos: MDatos, id: string, plantilla: string) {
         this._datos = datos;
         this._id = id;
         this._plantilla = this.comprobarPlantilla(plantilla);
@@ -62,6 +62,20 @@ export class Render {
             }
             //Devuelve una respuesta vacia
             return null;
+        });
+
+        Handlebars.registerHelper("INCLUIR", (datos, archivo, id?): string => {
+            archivo = resolve(plantilla, "..", basename(archivo) + ".hbs");
+            try {
+                if (typeof id === "string") return (new Render(datos, id, archivo)).renderizarPlantilla();
+                else return (new Render(datos, this._id, archivo)).renderizarPlantilla();
+            } catch (e) {
+                if (e instanceof ArchivoNoEncontrado) {
+                    return "El archivo no existe";
+                } else {
+                    return "Error al compilar el archivo".concat((<Error>e).message);
+                }
+            }
         });
 
         /**
@@ -197,7 +211,7 @@ export class Render {
      */
     comprobarPlantilla(plantilla: string): string {
         //Convierte la ruta a una ruta absoluta, en caso de ser relativa 
-        plantilla = join(resolve(plantilla));
+        plantilla = resolve(plantilla);
 
         //Comprueba si la ruta existe y es un archivo, en caso de que alguna de las opciones no se cumpla lanza un error
         if (!existsSync(plantilla) || !lstatSync(plantilla).isFile()) {
