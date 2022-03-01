@@ -3,7 +3,7 @@ import { logger, DB_CONFIG, CODIGOS_ESTADO } from '../config/config';
 import { ErrorMysql } from '../errors/ErrorMysql';
 
 //Importa las funciones de librerias locales
-import { bbdd_a_json, ejecutar_consulta, ejecutar_multiples_consultas } from "../controller/lib";
+import { bbdd_a_json, copia_tabla, ejecutar_consulta, ejecutar_multiples_consultas } from "../controller/lib";
 import { bodyDefinido, respuesta } from '../controller/serv';
 
 //Importa los tipos y funciones de los modulos de node
@@ -87,12 +87,18 @@ router.put("/:tabla?", bodyDefinido, async (req: Request, res: Response) => {
     try {
         //Array con las consultas
         const consultas: Array<string> = [];
+        //Fecha para la copia de seguridad de la tabla
+        const fecha = new Date();
         //En caso de que no se haya especificado una tabla
         if (req.params.tabla === undefined) {
+            //Set con las tablas para la copia de seguridad
+            const tablas: Set<string> = new Set<string>();
             //En caso de que la tabla tokens este declarada
             delete req.body.Tokens;
             //Todos las propiedades del cuerpo son tratadas como una tabla y recorridas
             Object.keys(<Record<string, string>>req.body).forEach((tabla) => {
+                //Añade la tabla al set de tablas
+                tablas.add(tabla);
                 //Crea la plantilla de cada insert
                 let plantilla_consulta = `INSERT INTO ${tabla}`;
                 //Comprueba si la propiedad columnas esta definida. En caso de estarlo añade a la plantilla las columnas sobre las que se realizara el insert
@@ -104,6 +110,11 @@ router.put("/:tabla?", bodyDefinido, async (req: Request, res: Response) => {
                     //Añade al array de consultas la consulta
                     consultas.push(`${plantilla_consulta} ('${valor.join("', '")}')`);
                 });
+            });
+            //Recorre las tablas.
+            tablas.forEach((tabla) => {
+                //Ejecuta una copia de seguridad de la tabla
+                copia_tabla(tabla, `CSBD_${tabla}_${fecha.getDate()}-${fecha.getMonth() + 1}_${fecha.getHours()}:${`0${fecha.getMinutes()}`.slice(-2)}:${`0${fecha.getSeconds()}`.slice(-2)}.mysql`);
             });
         } else {
             //Comprueba si la tabla especificada es tokens devuelve una respuesta vacia
@@ -119,6 +130,8 @@ router.put("/:tabla?", bodyDefinido, async (req: Request, res: Response) => {
                 //Añade al array de consultas la consulta
                 consultas.push(`${plantilla_consulta} ('${valor.join("', '")}')`);
             });
+            //Ejecuta una copia de seguridad de la tabla
+            copia_tabla(req.params.tabla, `CSBD_${req.params.tabla}_${fecha.getDate()}-${fecha.getMonth() + 1}_${fecha.getHours()}:${`0${fecha.getMinutes()}`.slice(-2)}:${`0${fecha.getSeconds()}`.slice(-2)}.mysql`);
         }
 
         //Ejecuta el array de consultas
@@ -144,21 +157,26 @@ router.put("/:tabla?", bodyDefinido, async (req: Request, res: Response) => {
     }
 });
 
-//----------------------------------------------------------------------------------
 router.post("/:tabla?", bodyDefinido, async (req: Request, res: Response): Promise<Response> => {
     try {
         //Array con las consultas
         const consultas: Array<string> = [];
+        //Fecha para la copia de seguridad de la tabla
+        const fecha = new Date();
         //En caso de que el body no sea un array, crea un array del body
         if (!Array.isArray(req.body)) req.body = [req.body];
         //En caso de que no se haya especificado una tabla
         if (req.params.tabla === undefined) {
+            //Set con las tablas para la copia de seguridad
+            const tablas: Set<string> = new Set<string>();
             //El cuerpo se trata como un array de objetos. En caso de no serlo se lanzaria un error. Cada objecto se considera que tiene unas opciones especificas
             req.body.forEach((query: { tabla: string, where: string, order_by?: string, limit?: string, valores: Record<string, string> }) => {
                 //En caso de que tabla o el where sean indefinidos lanzará un ErrorMysql
                 if (query.tabla === undefined || query.where === undefined || query.where.trim() === "") throw new ErrorMysql("Error", CODIGOS_ESTADO.Bad_Request);
                 //Si la tabla es tokens se ignora el objeto
                 if (query.tabla === "Tokens") return;
+                //Añade la tabla al set de tablas
+                tablas.add(query.tabla);
                 //Crea la plantilla. Para la query de update
                 let plantilla_consulta = `UPDATE ${query.tabla} SET`;
                 //Recorre el objeto valores. 
@@ -178,12 +196,17 @@ router.post("/:tabla?", bodyDefinido, async (req: Request, res: Response): Promi
 
                 //Comprueba si los condicionales tiene su respectivo condicional o ha de añadirlo. Si el 
                 //valor es vacio no añade el condicional
-                where = (/^where\s.*/.test(where) || where === "") ? where : `WHERE ${where}`;
+                where = (/^where\s.*/i.test(where) || where === "") ? where : `WHERE ${where}`;
                 order_by = (/^order\sby\s.*/i.test(order_by) || order_by === "") ? order_by : `ORDER BY ${order_by}`;
                 limit = (/^limit\s.*/i.test(order_by) || limit === "") ? limit : `LIMIT ${limit}`;
 
                 //Añade la consulta al array de consultas
                 consultas.push(`${plantilla_consulta} ${where} ${order_by} ${limit}`.trim());
+            });
+
+            //Ejecuta la copia de seguridad de todas las tablas
+            tablas.forEach((tabla) => {
+                copia_tabla(tabla, `CSBD_${tabla}_${fecha.getDate()}-${fecha.getMonth() + 1}_${fecha.getHours()}:${`0${fecha.getMinutes()}`.slice(-2)}:${`0${fecha.getSeconds()}`.slice(-2)}.mysql`);
             });
         } else {
             //Comprueba si la tabla especificada es tokens devuelve una respuesta vacia
@@ -213,13 +236,16 @@ router.post("/:tabla?", bodyDefinido, async (req: Request, res: Response): Promi
 
                 //Comprueba si los condicionales tiene su respectivo condicional o ha de añadirlo. Si el 
                 //valor es vacio no añade el condicional
-                where = (/^where\s.*/.test(where) || where === "") ? where : `WHERE ${where}`;
+                where = (/^where\s.*/i.test(where) || where === "") ? where : `WHERE ${where}`;
                 order_by = (/^order\sby\s.*/i.test(order_by) || order_by === "") ? order_by : `ORDER BY ${order_by}`;
                 limit = (/^limit\s.*/i.test(order_by) || limit === "") ? limit : `LIMIT ${limit}`;
 
                 //Añade la consulta al array de consultas
                 consultas.push(`${plantilla_consulta} ${where} ${order_by} ${limit}`.trim());
             });
+
+            //Ejecuta una copia de seguridad de la tabla
+            copia_tabla(req.params.tabla, `CSBD_${req.params.tabla}_${fecha.getDate()}-${fecha.getMonth() + 1}_${fecha.getHours()}:${`0${fecha.getMinutes()}`.slice(-2)}:${`0${fecha.getSeconds()}`.slice(-2)}.mysql`);
         }
 
         //Ejecuta el array de consultas
@@ -249,16 +275,22 @@ router.delete("/:tabla?", bodyDefinido, async (req: Request, res: Response): Pro
     try {
         //Array con las consultas
         const consultas: Array<string> = [];
+        //Fecha para la copia de seguridad de la tabla
+        const fecha = new Date();
         //En caso de que el body no sea un array, crea un array del body
         if (!Array.isArray(req.body)) req.body = [req.body];
         //En caso de que no se haya especificado una tabla
         if (req.params.tabla === undefined) {
+            //Set con las tablas para la copia de seguridad
+            const tablas: Set<string> = new Set<string>();
             //El cuerpo se trata como un array de objetos. En caso de no serlo se lanzaria un error. Cada objecto se considera que tiene unas opciones especificas
             req.body.forEach((query: { tabla: string, where: string, order_by?: string, limit?: string }) => {
                 //En caso de que tabla o el where sean indefinidos lanzará un ErrorMysql
                 if (query.tabla === undefined || query.where === undefined || query.where.trim() === "") throw new ErrorMysql("Error", CODIGOS_ESTADO.Bad_Request);
                 //Si la tabla es tokens se ignora el objeto
                 if (query.tabla === "Tokens") return;
+                //Añade la tabla al set de tablas
+                tablas.add(query.tabla);
                 //Crea la plantilla de cada insert  
                 const plantilla_consulta = `DELETE FROM ${query.tabla}`;
 
@@ -270,13 +302,19 @@ router.delete("/:tabla?", bodyDefinido, async (req: Request, res: Response): Pro
 
                 //Comprueba si los condicionales tiene su respectivo condicional o ha de añadirlo. Si el 
                 //valor es vacio no añade el condicional
-                where = (/^where\s.*/.test(where) || where === "") ? where : `WHERE ${where}`;
+                where = (/^where\s.*/i.test(where) || where === "") ? where : `WHERE ${where}`;
                 order_by = (/^order\sby\s.*/i.test(order_by) || order_by === "") ? order_by : `ORDER BY ${order_by}`;
                 limit = (/^limit\s.*/i.test(order_by) || limit === "") ? limit : `LIMIT ${limit}`;
 
                 //Añade la consulta al array de consultas
                 consultas.push(`${plantilla_consulta} ${where} ${order_by} ${limit}`.trim());
             });
+
+            //Ejecuta una copia de seguridad de todas las tablas
+            tablas.forEach((tabla) => {
+                copia_tabla(tabla, `CSBD_${tabla}_${fecha.getDate()}-${fecha.getMonth() + 1}_${fecha.getHours()}:${`0${fecha.getMinutes()}`.slice(-2)}:${`0${fecha.getSeconds()}`.slice(-2)}.mysql`);
+            });
+
         } else {
             //Comprueba si la tabla especificada es tokens devuelve una respuesta vacia
             if (req.params.tabla === "Tokens") return respuesta(res, {}, CODIGOS_ESTADO.Bad_Request);
@@ -297,13 +335,16 @@ router.delete("/:tabla?", bodyDefinido, async (req: Request, res: Response): Pro
 
                 //Comprueba si los condicionales tiene su respectivo condicional o ha de añadirlo. Si el 
                 //valor es vacio no añade el condicional
-                where = (/^where\s.*/.test(where) || where === "") ? where : `WHERE ${where}`;
+                where = (/^where\s.*/i.test(where) || where === "") ? where : `WHERE ${where}`;
                 order_by = (/^order\sby\s.*/i.test(order_by) || order_by === "") ? order_by : `ORDER BY ${order_by}`;
                 limit = (/^limit\s.*/i.test(order_by) || limit === "") ? limit : `LIMIT ${limit}`;
 
                 //Añade la consulta al array de consultas
                 consultas.push(`${plantilla_consulta} ${where} ${order_by} ${limit}`.trim());
             });
+
+            //Ejecuta una copia de seguridad de la tabla
+            copia_tabla(req.params.tabla, `CSBD_${req.params.tabla}_${fecha.getDate()}-${fecha.getMonth() + 1}_${fecha.getHours()}:${`0${fecha.getMinutes()}`.slice(-2)}:${`0${fecha.getSeconds()}`.slice(-2)}.mysql`);
         }
 
         //Ejecuta el array de consultas
@@ -324,8 +365,6 @@ router.delete("/:tabla?", bodyDefinido, async (req: Request, res: Response): Pro
             //Devuelve un mensaje de error, con el codigo 500
             return respuesta(res, "Error del servidor", CODIGOS_ESTADO.Internal_Server_Error);
         }
-        logger.log_consola("Algo ha fallado", {}, e);
-        console.log(e.name);
         //Devuelve un mensaje de error indicando un fallo en la consulta
         return respuesta(res, "Fallo al borrar los datos. " + (<Error>e).message, CODIGOS_ESTADO.Bad_Request);
     }
