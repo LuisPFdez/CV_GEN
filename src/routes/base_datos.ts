@@ -36,7 +36,7 @@ router.get("/:tabla?", async (req: Request, res: Response) => {
         where = (/^where\s.*/i.test(where) || where === "") ? where : `WHERE ${where}`;
         group_by = (/^group\sby\s.*/i.test(group_by) || group_by === "") ? group_by : `GROUP BY ${group_by}`;
         order_by = (/^order\sby\s.*/i.test(order_by) || order_by === "") ? order_by : `ORDER BY ${order_by}`;
-        limit = (/^limit\s.*/i.test(order_by) || limit === "") ? limit : `LIMIT ${limit}`;
+        limit = (/^limit\s.*/i.test(limit) || limit === "") ? limit : `LIMIT ${limit}`;
 
         //LLama a la funcion para ejecutar la consulta, guarda el resultado en una 
         const json = await ejecutar_consulta(`SELECT * FROM ${req.params.tabla} ${where} ${group_by} ${order_by} ${limit}`.trim(), DB_CONFIG);
@@ -198,7 +198,7 @@ router.post("/:tabla?", bodyDefinido, async (req: Request, res: Response): Promi
                 //valor es vacio no añade el condicional
                 where = (/^where\s.*/i.test(where) || where === "") ? where : `WHERE ${where}`;
                 order_by = (/^order\sby\s.*/i.test(order_by) || order_by === "") ? order_by : `ORDER BY ${order_by}`;
-                limit = (/^limit\s.*/i.test(order_by) || limit === "") ? limit : `LIMIT ${limit}`;
+                limit = (/^limit\s.*/i.test(limit) || limit === "") ? limit : `LIMIT ${limit}`;
 
                 //Añade la consulta al array de consultas
                 consultas.push(`${plantilla_consulta} ${where} ${order_by} ${limit}`.trim());
@@ -238,7 +238,7 @@ router.post("/:tabla?", bodyDefinido, async (req: Request, res: Response): Promi
                 //valor es vacio no añade el condicional
                 where = (/^where\s.*/i.test(where) || where === "") ? where : `WHERE ${where}`;
                 order_by = (/^order\sby\s.*/i.test(order_by) || order_by === "") ? order_by : `ORDER BY ${order_by}`;
-                limit = (/^limit\s.*/i.test(order_by) || limit === "") ? limit : `LIMIT ${limit}`;
+                limit = (/^limit\s.*/i.test(limit) || limit === "") ? limit : `LIMIT ${limit}`;
 
                 //Añade la consulta al array de consultas
                 consultas.push(`${plantilla_consulta} ${where} ${order_by} ${limit}`.trim());
@@ -304,7 +304,7 @@ router.delete("/:tabla?", bodyDefinido, async (req: Request, res: Response): Pro
                 //valor es vacio no añade el condicional
                 where = (/^where\s.*/i.test(where) || where === "") ? where : `WHERE ${where}`;
                 order_by = (/^order\sby\s.*/i.test(order_by) || order_by === "") ? order_by : `ORDER BY ${order_by}`;
-                limit = (/^limit\s.*/i.test(order_by) || limit === "") ? limit : `LIMIT ${limit}`;
+                limit = (/^limit\s.*/i.test(limit) || limit === "") ? limit : `LIMIT ${limit}`;
 
                 //Añade la consulta al array de consultas
                 consultas.push(`${plantilla_consulta} ${where} ${order_by} ${limit}`.trim());
@@ -337,7 +337,7 @@ router.delete("/:tabla?", bodyDefinido, async (req: Request, res: Response): Pro
                 //valor es vacio no añade el condicional
                 where = (/^where\s.*/i.test(where) || where === "") ? where : `WHERE ${where}`;
                 order_by = (/^order\sby\s.*/i.test(order_by) || order_by === "") ? order_by : `ORDER BY ${order_by}`;
-                limit = (/^limit\s.*/i.test(order_by) || limit === "") ? limit : `LIMIT ${limit}`;
+                limit = (/^limit\s.*/i.test(limit) || limit === "") ? limit : `LIMIT ${limit}`;
 
                 //Añade la consulta al array de consultas
                 consultas.push(`${plantilla_consulta} ${where} ${order_by} ${limit}`.trim());
