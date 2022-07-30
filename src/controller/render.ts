@@ -1,7 +1,7 @@
 
 import { existsSync, lstatSync, readFileSync, } from "fs";
 import Handlebars from "handlebars";
-import { resolve, basename } from "path";
+import { resolve } from "path";
 import { ArchivoNoEncontrado } from "../errors/ArchivoNoEncontrado";
 import { ErrorRenderizado } from "../errors/ErrorRenderizado";
 
@@ -64,9 +64,9 @@ export class Render {
             return null;
         });
 
-        Handlebars.registerHelper("INCLUIR", (datos, archivo, id?): string => {
-            archivo = resolve(plantilla, "..", basename(archivo) + ".hbs");
+        Handlebars.registerHelper("INCL", (datos, archivo, id?): string => {
             try {
+                archivo = resolve(plantilla, "..", (<string>archivo).replace(/(?:\.\.\/)+/, "") + ".hbs");
                 if (typeof id === "string") return (new Render(datos, id, archivo)).renderizarPlantilla();
                 else return (new Render(datos, this._id, archivo)).renderizarPlantilla();
             } catch (e) {
@@ -76,6 +76,25 @@ export class Render {
                     return "Error al compilar el archivo".concat((<Error>e).message);
                 }
             }
+        });
+
+        Handlebars.registerHelper("COM", (tipo_html, ...args) => {
+            let res = "";
+            let comentario_inicio: string;
+            let comentario_fin: string;
+
+            if (tipo_html) {
+                comentario_inicio = "<!--";
+                comentario_fin = "-->";
+            } else {
+                comentario_inicio = "//";
+                comentario_fin = "";
+            }
+
+            args.forEach((elemento) => {
+                res = `${res}\n${comentario_inicio}${elemento.toString?.()}${comentario_fin}`;
+            });
+            return res;
         });
 
         /**
