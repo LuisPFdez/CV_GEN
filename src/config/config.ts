@@ -21,7 +21,7 @@ declare global {
          * Permite definir una plantilla como string y compilarla al llamar a este metodo
          * @param args objeto, con un string como clave, y cualquier tipo como valor
          * @returns una Funcion que cambia sustitulle los valores en la plantill
-         * @see Codigo de {@link https://stackoverflow.com/questions/29182244/convert-a-string-to-a-template-string/41015840#41015840 StackOverflow}
+         * @see Codigo de {@link https://stackoverflow.com/questions/29182244/convert-a-string-to-a-template-string/41015840#41015840 } StackOverflow
          */
 
         compilarPlantilla(args: Record<string, unknown>): Function;
@@ -118,3 +118,4 @@ export const codificacion: BufferEncoding = process.env.CODIFICACION;
 //Exporta las constantes de las claves SECRETO y SECKEY
 export const clave_secreto: string = process.env.SECRETO;
 export const clave_seckey: string = process.env.SECKEY;
+export const directorio_compilado: string = process.env.DIR_COM || "dist";

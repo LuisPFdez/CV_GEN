@@ -3,7 +3,7 @@
  */
 import { Render, MDatos } from "./render";
 import { ErrorMysql } from "../errors/ErrorMysql";
-import { codificacion, CODIGOS_ESTADO, DB_CONFIG, ruta_tmp } from "../config/config";
+import { codificacion, CODIGOS_ESTADO, DB_CONFIG, directorio_compilado, ruta_tmp } from "../config/config";
 import { ErrorGeneral } from "../errors/ErrorGeneral";
 
 import { SpawnOptions, spawnSync } from "child_process";
@@ -26,7 +26,7 @@ async function bbdd_a_json(config: ConnectionConfig, esquema?: string[]): Promis
     //La tabla tokens no puede ser incluida en los datos, al contener todos los tokens del 
     modelo.indexOf("Tokens") >= 0 ? modelo.splice(modelo.indexOf("Tokens"), 1) : null;
     //JSON que será devuelto, contiene la informacion de la base de datos en forma JSON;
-    const json: MDatos = {};
+    const json: Record<string, Array<Record<string, string>>> = {};
     //Las consultas de la base de datos se haran de forma asincrona, en este array se guardan todas esas consultas.
     const queries: Promise<unknown>[] = [];
     //Crea la conexion
@@ -150,7 +150,7 @@ async function bbdd_token(config: ConnectionConfig): Promise<string[]> {
  * @param plantilla String, ruta de la plantilla que se va a renderizar
  * @returns string, plantilla renderizada
  */
-async function json_a_html(json: MDatos, id: string = "ID", plantilla: string = "dist/templates/temp1.hbs"): Promise<string> {
+async function json_a_html(json: MDatos, id: string = "ID", plantilla: string = `${directorio_compilado}/templates/temp1.hbs`): Promise<string> {
     //Crea el objeto render 
     const render = new Render(json, id, plantilla);
     //Devuelve la plantilla renderizada
@@ -297,7 +297,7 @@ function copia_tabla(tabla: string, nombreArchivo: string, callback?: (error: nu
     }
 
     //Guarda la copia de la tabla en el archivo. 
-    writeFileSync(nombreArchivo, proceso.stdout, {encoding: codificacion});
+    writeFileSync(nombreArchivo, proceso.stdout, { encoding: codificacion });
 }
 
 /**
@@ -311,7 +311,7 @@ async function restablecer_tabla(nombreArchivo: string): Promise<void> {
         //Comprueba el acceso de lectura del archivo
         accessSync(nombreArchivo, R_OK);
         //Lee el archivo y almacena la informacion en la variable datos archivo.
-        const datos_archivo = readFileSync(nombreArchivo, {encoding: codificacion});
+        const datos_archivo = readFileSync(nombreArchivo, { encoding: codificacion });
         //Crea la conexion, establece la opcion de multiples consultas 
         const conexion = createConnection({ multipleStatements: true, ...DB_CONFIG });
         //Establece la funcion conexion.query para permitir el uso de promesas, se vincula el objeto conexion

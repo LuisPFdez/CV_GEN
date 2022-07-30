@@ -1,5 +1,5 @@
 //Importa la variable logger del index
-import { logger, DB_CONFIG, CODIGOS_ESTADO } from '../config/config';
+import { logger, DB_CONFIG, CODIGOS_ESTADO, directorio_compilado } from '../config/config';
 
 //Importa las funciones de librerias locales
 import { bbdd_a_json, ejecutar_consulta, ejecutar_multiples_consultas, json_a_html } from "../controller/lib";
@@ -12,7 +12,7 @@ import { Router, Request, Response } from "express";
 export const router = Router();
 
 //Ruta a las plantillas 
-const rutaPlantillas = "dist/templates/";
+const rutaPlantillas = directorio_compilado + "/templates/";
 //Plantilla por defecto 
 const plantillaPre = "temp1.hbs";
 
@@ -23,7 +23,7 @@ router.get("/bbdd_html", async (req: Request, res: Response): Promise<Response> 
     try {
         //Comprueba si se ha pasado por parametro la plantilla, en caso contrario asigna la plantilla por defecto
         const plantilla: string = <string>req.query.plantilla || plantillaPre;
-        
+
         //Renderiza el html, obtiene la informacion de la base de datos y luego llama a rendezar plantilla, teniendo como identificador
         //"ID", y la ruta relativa a la plantilla
         const html = await json_a_html(await bbdd_a_json(DB_CONFIG), "ID", rutaPlantillas + plantilla);
@@ -41,15 +41,15 @@ router.get("/bbdd_html", async (req: Request, res: Response): Promise<Response> 
 });
 
 router.get("/tablas_bbdd", async (req: Request, res: Response): Promise<Response> => {
-    try{
+    try {
         //Recupera las tablas de la base de datos
         const json = await ejecutar_consulta("SHOW TABLES", DB_CONFIG);
         //Objeto con las consultas y el nombre de estas
         const tablas: Record<string, string> = {};
-        
+
         //En caso de que tipo de json sea un booleano responde con un objeto vacio y un codigo de error 500
         if (typeof (json) == "boolean") return respuesta(res, {}, CODIGOS_ESTADO.Internal_Server_Error);
-        
+
         //Recorre los datos de la consulta json
         json.forEach((datos) => {
             //Obtiene el valor de cada consulta
@@ -57,15 +57,15 @@ router.get("/tablas_bbdd", async (req: Request, res: Response): Promise<Response
             //Crea un objeto con las consultas a ejecutar
             tablas[tabla] = `DESCRIBE ${tabla}`;
         });
-        
+
         //Elimina la tabla tokens del objeto de consultas
         delete tablas["Tokens"];
         //Ejecuta las consultas y las almacena en el resultado
-        const resultado = await ejecutar_multiples_consultas(tablas, DB_CONFIG); 
-        
+        const resultado = await ejecutar_multiples_consultas(tablas, DB_CONFIG);
+
         //Devuelve el resultado de la consulta
         return respuesta(res, resultado, CODIGOS_ESTADO.OK);
-    } catch (e){
+    } catch (e) {
         //En caso de error se almacena en el archivo 
         logger.error_archivo("Error en tablas_bbdd", {}, <Error>e);
         //Devuelve una respuesta indicado, junto con el mensaje del error y el codigo de estado 500
