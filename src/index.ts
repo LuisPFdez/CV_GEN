@@ -7,6 +7,7 @@ import { router as tokens } from "./routes/tokens";
 import { router as base_datos } from "./routes/base_datos";
 import { router as modulos } from "./routes/modulos";
 import { router as info } from "./routes/info";
+import { router as herramientas } from "./routes/herramientas";
 import { respuesta } from './controller/serv';
 
 import express, { Express, Response, Request, NextFunction } from "express";
@@ -72,6 +73,8 @@ if (cluster.isPrimary) {
     app.use("/base_datos", base_datos);
     //Ruta para la informacion de la api
     app.use("/info", info);
+    //Ruta para operaciones herramientas para la base de datos
+    app.use("/herramientas", herramientas);
 
     //En caso de que el se pase algun error a traves de la funcion next. Captura, principalmente, los errores lanzados por express.json()
     //eslint-disable-next-line @typescript-eslint/no-unused-vars

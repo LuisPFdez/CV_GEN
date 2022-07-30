@@ -114,7 +114,7 @@ router.put("/:tabla?", bodyDefinido, async (req: Request, res: Response) => {
             //Recorre las tablas.
             tablas.forEach((tabla) => {
                 //Ejecuta una copia de seguridad de la tabla
-                copia_tabla(tabla, `CSBD_${tabla}_${fecha.getDate()}-${fecha.getMonth() + 1}_${fecha.getHours()}:${`0${fecha.getMinutes()}`.slice(-2)}:${`0${fecha.getSeconds()}`.slice(-2)}.mysql`);
+                copia_tabla(tabla, `CSBD_${tabla}_${fecha.getMonth() + 1}-${fecha.getDate()}_${fecha.getHours()}:${`0${fecha.getMinutes()}`.slice(-2)}:${`0${fecha.getSeconds()}`.slice(-2)}.mysql`);
             });
         } else {
             //Comprueba si la tabla especificada es tokens devuelve una respuesta vacia
@@ -131,7 +131,7 @@ router.put("/:tabla?", bodyDefinido, async (req: Request, res: Response) => {
                 consultas.push(`${plantilla_consulta} ('${valor.join("', '")}')`);
             });
             //Ejecuta una copia de seguridad de la tabla
-            copia_tabla(req.params.tabla, `CSBD_${req.params.tabla}_${fecha.getDate()}-${fecha.getMonth() + 1}_${fecha.getHours()}:${`0${fecha.getMinutes()}`.slice(-2)}:${`0${fecha.getSeconds()}`.slice(-2)}.mysql`);
+            copia_tabla(req.params.tabla, `CSBD_${req.params.tabla}_${fecha.getMonth() + 1}-${fecha.getDate()}_${fecha.getHours()}:${`0${fecha.getMinutes()}`.slice(-2)}:${`0${fecha.getSeconds()}`.slice(-2)}.mysql`);
         }
 
         //Ejecuta el array de consultas
@@ -206,7 +206,7 @@ router.post("/:tabla?", bodyDefinido, async (req: Request, res: Response): Promi
 
             //Ejecuta la copia de seguridad de todas las tablas
             tablas.forEach((tabla) => {
-                copia_tabla(tabla, `CSBD_${tabla}_${fecha.getDate()}-${fecha.getMonth() + 1}_${fecha.getHours()}:${`0${fecha.getMinutes()}`.slice(-2)}:${`0${fecha.getSeconds()}`.slice(-2)}.mysql`);
+                copia_tabla(tabla, `CSBD_${tabla}_${fecha.getMonth() + 1}-${fecha.getDate()}_${fecha.getHours()}:${`0${fecha.getMinutes()}`.slice(-2)}:${`0${fecha.getSeconds()}`.slice(-2)}.mysql`);
             });
         } else {
             //Comprueba si la tabla especificada es tokens devuelve una respuesta vacia
@@ -245,7 +245,7 @@ router.post("/:tabla?", bodyDefinido, async (req: Request, res: Response): Promi
             });
 
             //Ejecuta una copia de seguridad de la tabla
-            copia_tabla(req.params.tabla, `CSBD_${req.params.tabla}_${fecha.getDate()}-${fecha.getMonth() + 1}_${fecha.getHours()}:${`0${fecha.getMinutes()}`.slice(-2)}:${`0${fecha.getSeconds()}`.slice(-2)}.mysql`);
+            copia_tabla(req.params.tabla, `CSBD_${req.params.tabla}_${fecha.getMonth() + 1}-${fecha.getDate()}_${fecha.getHours()}:${`0${fecha.getMinutes()}`.slice(-2)}:${`0${fecha.getSeconds()}`.slice(-2)}.mysql`);
         }
 
         //Ejecuta el array de consultas
@@ -312,7 +312,7 @@ router.delete("/:tabla?", bodyDefinido, async (req: Request, res: Response): Pro
 
             //Ejecuta una copia de seguridad de todas las tablas
             tablas.forEach((tabla) => {
-                copia_tabla(tabla, `CSBD_${tabla}_${fecha.getDate()}-${fecha.getMonth() + 1}_${fecha.getHours()}:${`0${fecha.getMinutes()}`.slice(-2)}:${`0${fecha.getSeconds()}`.slice(-2)}.mysql`);
+                copia_tabla(tabla, `CSBD_${tabla}_${fecha.getMonth() + 1}-${fecha.getDate()}_${fecha.getHours()}:${`0${fecha.getMinutes()}`.slice(-2)}:${`0${fecha.getSeconds()}`.slice(-2)}.mysql`);
             });
 
         } else {
@@ -344,7 +344,7 @@ router.delete("/:tabla?", bodyDefinido, async (req: Request, res: Response): Pro
             });
 
             //Ejecuta una copia de seguridad de la tabla
-            copia_tabla(req.params.tabla, `CSBD_${req.params.tabla}_${fecha.getDate()}-${fecha.getMonth() + 1}_${fecha.getHours()}:${`0${fecha.getMinutes()}`.slice(-2)}:${`0${fecha.getSeconds()}`.slice(-2)}.mysql`);
+            copia_tabla(req.params.tabla, `CSBD_${req.params.tabla}_${fecha.getMonth() + 1}-${fecha.getDate()}_${fecha.getHours()}:${`0${fecha.getMinutes()}`.slice(-2)}:${`0${fecha.getSeconds()}`.slice(-2)}.mysql`);
         }
 
         //Ejecuta el array de consultas
