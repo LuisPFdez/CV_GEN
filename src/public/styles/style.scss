@@ -1,9 +1,4 @@
 //Clases predefinidas y estilo principal
-@media (min-height: 990px){
-    .estilo-1, body{
-        height: 100% !important;
-    }    
-}
 
 *{
     margin: 0;
@@ -18,7 +13,7 @@ html{
     &, body{
         min-width: 550px;
         min-height: 780px;
-        max-height: 1000px;
+        height: 100%;
     }
 }
 
@@ -79,7 +74,7 @@ html{
         background-color: inherit;
 
         padding: 15px;
-        height: 75%;
+        height: fit-content;
         align-self: center;
         margin-right: 5px;
 
@@ -153,6 +148,7 @@ html{
         grid-auto-flow: row;
         align-content: center;
         gap: 15px;
+        height: fit-content;
     }
     
     .especial-1{
