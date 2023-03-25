@@ -44,7 +44,7 @@ String.prototype.compilarPlantilla = function (this: string, args: Record<string
     const valores: unknown[] = Object.values(args);
     //Devuelve una funcion que tiene por parametros todos los nombres de la funcion y devuelve la plantilla con los valores sustituidos
     //Se le pasan por parametro todos los valores, al haberse extraido de un objeto cada valor corresponde con su clave o nombre
-    return new Function(...nombres, `return \`${this}\``)(...valores);
+    return Function(...nombres, `return \`${this}\``)(...valores);
 };
 
 
