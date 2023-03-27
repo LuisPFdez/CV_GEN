@@ -1,6 +1,6 @@
 <!-- Curriculum de ejemplo -->
 <!DOCTYPE html>
-<html lang="es" class="estilo-1">
+<html lang="es">
 
 <head>
     <meta charset="UTF-8">
@@ -13,20 +13,34 @@
 </head>
 
 <body>
-    <header class="cabecera">
-        <img src="/public/perfil.png" alt="Imagen de Perfil" class="img-1">
-        <section class="titulo-cont">
-            {{#IDB Datos 'NOM'}}
-                <h1 class="titulo">{{Descripcion}}</h1>
-            {{/IDB}}
-            {{#IDB Datos 'DES'}}
-                <span class="subtitulo">{{Descripcion}}</span>
-            {{/IDB}}
-        </section>
-    </header>
 
+    <script src="/public/scripts/script.js"></script>
     <nav class="lateral"> 
+    
+        <header class="cabecera">
+            <img src="/public/perfil.png" alt="Imagen de Perfil" class="img-1">
+            <section class="titulo-cont">
+                {{#IDB Datos 'NOM'}}
+                    <h1 class="titulo">{{Descripcion}}</h1>
+                {{/IDB}}
+                {{#IDB Datos 'DES'}}
+                    <span class="subtitulo">{{Descripcion}}</span>
+                {{/IDB}}
+            </section>
+        </header>
         
+        <section class="separador">
+
+        </section>
+
+        <section class="descripcion">
+            {{#IT Adicional}}
+                {{#IF-REG ID "/^DES/i"}}
+                    {{Descripcion}}
+                {{/IF-REG}}
+            {{/IT}}
+        </section>
+
         <section>
             <article class="titulo-seccion">
                 <span>Contacto</span>
@@ -41,23 +55,69 @@
                         </li>
                     {{/IF-REG}}
                 {{/IT-IFM}}
+                <span class="destacado">{{Nombre}}</span>
+                            {{Descripcion}}
             </ul>
             <article class="contacto">
+                {{#IDB Datos 'EMAIL'}}
+                    {{#if ID }}
+                        <a href="mailto:{{Descripcion}}"><i class="bi bi-envelope"></i></a>
+                    {{/if}}
+                {{/IDB}}
+
+                {{#IT-IFM Datos 'and' 'ID' '!=' 'NOM' 'ID' '!=' 'DES' 'ID' '!=' 'LNK-EMAIL'}}
+                    {{#IF-REG ID '/^LNK-/i'}}
+                        <a href="{{Descripcion}}"><i class="bi bi-{{Nombre}}"></i></a>
+                    {{/IF-REG}}
+                {{/IT-IFM}}
+
+                <!-- lINK PARA ENVIAR  -->
+                <!-- CODIGO ANTIGUO PARA LOS LINKS, sustituido por el código de arriba
                 {{#IDB Datos 'LNK-EMAIL'}}
-                    <a href="{{Descripcion}}"><i class="bi bi-envelope"></i></a>
+                    {{#if ID }}
+                        <a href="{{Descripcion}}"><i class="bi bi-envelope"></i></a>
+                    {{/if}}
                 {{/IDB}}
                 {{#IDB Datos 'LNK-FACEBOOK'}}
-                    <a href="{{Descripcion}}"><i class="bi bi-meta"></i></a>
+                    {{#if ID }}
+                        <a href="{{Descripcion}}"><i class="bi bi-meta"></i></a>
+                    {{/if}}
                 {{/IDB}}
                 {{#IDB Datos 'LNK-INSTAGRAM'}}
-                    <a href="{{Descripcion}}"><i class="bi bi-instagram"></i></a>
+                    {{#if ID }}
+                        <a href="{{Descripcion}}"><i class="bi bi-instagram"></i></a>
+                    {{/if}}
                 {{/IDB}}
                 {{#IDB Datos 'LNK-TWITTER'}}
-                    <a href="{{Descripcion}}"><i class="bi bi-twitter"></i></a>
+                    {{#if ID }}
+                        <a href="{{Descripcion}}"><i class="bi bi-twitter"></i></a>
+                    {{/if}}
                 {{/IDB}}
+                {{#IDB Datos 'LNK-LINKEDIN'}}
+                    {{#if ID }}
+                        <a href="{{Descripcion}}"><i class="bi bi-linkedin"></i></a>
+                    {{/if}}
+                {{/IDB}} -->
             </article>
             
         </section>
+
+        <section>
+            <article class="titulo-seccion">
+                <span>Adicional</span>
+            </article>
+            <ul class="lista-1">
+                {{#IT Adicional}}
+                    {{#IF-REG ID "! /^DES/i"}}
+                        <li>
+                            <span class="destacado">{{Nombre}}</span>{{#if Descripcion}},{{/if}} {{Descripcion}}
+                            <br>
+                        </li>
+                    {{/IF-REG}}
+                {{/IT}}
+            </ul>
+        </section>
+
         <section>
             <article class="titulo-seccion">
                 <span>Idiomas</span>
@@ -80,7 +140,7 @@
     <main class="principal">
         <section class="seccion">
             <article class="titulo-seccion">
-                <span>Formacion</span>
+                <span>Formación</span>
             </article>
             <ul class="lista-1">
             {{#IT Formacion }}
@@ -89,12 +149,25 @@
                     {{#if Link }}
                     href="{{Link}}"
                     {{/if}}
-                    >{{Titulo}}</a>, {{Fecha_inicial}} / {{Fecha_fin}}
+                    >{{Titulo}}</a>, {{{FFC Fecha_inicial}}} / {{{FFC Fecha_fin}}}
                     <br>
-                    <!-- La funcion if por defecto de handlebars no permite el operador "and" por 
-                    lo que es necesario un doble condiciona anidado-->
+                    {{!-- La funcion if por defecto de handlebars no permite el operador "and" por 
+                    lo que es necesario un doble condiciona anidado--}}
                     {{Centro}} {{#if Centro }} {{#if Ciudad }} - {{/if}} {{/if}} {{Ciudad}}
                     <br>
+                    <ul class="lista-2">{{#IT-IF ../Formacion_Adicional 'FOR_ID' '==' ID }}
+                        <li> 
+                                <div class="marca_elemento">
+                                    <svg aria-hidden="true" viewBox="0 0 32 32" focusable="false">
+                                    <path
+                                        d="M16 4c6.6 0 12 5.4 12 12s-5.4 12-12 12S4 22.6 4 16 9.4 4 16 4zm0-4C7.2 0 0 7.2 0 16s7.2 16 16 16 16-7.2 16-16S24.8 0 16 0z">
+                                    </path>
+                                    <circle cx="16" cy="16" r="6"></circle>
+                                    </svg>
+                                </div>
+                                {{Nombre}} {{#if Descripcion}} - {{Descripcion}} {{/if}}
+                            </li>
+                    {{/IT-IF}}</ul>
                 </li>
             {{/IT}}
             </ul>
@@ -105,18 +178,32 @@
                 <span>Experiencia</span>
             </article>
             <ul class="lista-1">
+            {{{ORD Experiencia 'Fecha_inicial'}}}
             {{#IT Experiencia }}
                 <li>
                     <a
-                    {{#if Link }}
-                    href="{{Link}}"
-                    {{/if}}
-                    >{{Empresa}}</a>, {{Fecha_inicial}} / {{Fecha_fin}}
+                    {{#IF Link "!=" 'null'}}
+                        address="dada"
+                        href="{{Link}}"
+                    {{/IF}}>{{Empresa}}</a>, {{{FFC Fecha_inicial}}} / {{{FFC Fecha_fin}}}
                     <br>
-                    <!-- La funcion if por defecto de handlebars no permite el operador "and" por 
-                    lo que es necesario un doble condiciona anidado-->
+                    {{!-- La funcion if por defecto de handlebars no permite el operador "and" por 
+                    lo que es necesario un doble condiciona anidado--}}
                     {{Funcion}} {{#if Funcion }} {{#if Ciudad }} - {{/if}} {{/if}} {{Ciudad}}
                     <br>
+                    <ul class="lista-2">{{#IT-IF ../Experiencia_Adicional 'EXP_ID' '==' ID }}
+                        <li> 
+                                <div class="marca_elemento">
+                                    <svg aria-hidden="true" viewBox="0 0 32 32" focusable="false">
+                                    <path
+                                        d="M16 4c6.6 0 12 5.4 12 12s-5.4 12-12 12S4 22.6 4 16 9.4 4 16 4zm0-4C7.2 0 0 7.2 0 16s7.2 16 16 16 16-7.2 16-16S24.8 0 16 0z">
+                                    </path>
+                                    <circle cx="16" cy="16" r="6"></circle>
+                                    </svg>
+                                </div>
+                                {{Nombre}} {{#if Descripcion}} - {{Descripcion}} {{/if}}
+                            </li>
+                    {{/IT-IF}}</ul>
                 </li>
             {{/IT}}
             </ul>
@@ -125,22 +212,17 @@
             <article class="titulo-seccion">
                 <span>Habilidades</span>
             </article>
-            <ul class="lista-1">
+            <ul class="lista-3">
             {{#IT Habilidades}}
                 <li>
-                    <span class="destacado">{{Nombre}}</span> {{#if Descripcion}},{{/if}} {{Descripcion}}
-                    <br>
-                </li>
-            {{/IT}}
-            </ul>
-        </section>
-        <section class="seccion">
-             <article class="titulo-seccion">
-                <span>Adicional</span>
-            </article>
-            <ul class="lista-1">
-            {{#IT Adicional}}
-                <li>
+                    <div class="marca_elemento">
+                        <svg aria-hidden="true" viewBox="0 0 32 32" focusable="false">
+                        <path
+                            d="M16 4c6.6 0 12 5.4 12 12s-5.4 12-12 12S4 22.6 4 16 9.4 4 16 4zm0-4C7.2 0 0 7.2 0 16s7.2 16 16 16 16-7.2 16-16S24.8 0 16 0z">
+                        </path>
+                        <circle cx="16" cy="16" r="6"></circle>
+                        </svg>
+                    </div>
                     <span class="destacado">{{Nombre}}</span> {{#if Descripcion}},{{/if}} {{Descripcion}}
                     <br>
                 </li>
@@ -149,5 +231,6 @@
         </section>
     </main>
 </body>
+
 
 </html>
