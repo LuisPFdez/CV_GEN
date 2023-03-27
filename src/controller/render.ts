@@ -56,7 +56,7 @@ export class Render {
             if (campo === undefined) return "El campo es undefined";
 
             //Expresion para validar
-            if (new Function(`return ${expr}.test('${campo}')`)()) {
+            if (Function(`return ${expr}.test('${campo}')`)()) {
                 //Devuelve la respuesta
                 return options.fn(this);
             }
@@ -64,11 +64,28 @@ export class Render {
             return null;
         });
 
-        Handlebars.registerHelper("INCL", (datos, archivo, id?): string => {
+        /**
+         * Condicional que permite realizar comprobaciones con dos valores, a diferencia del helper de handlebars que solo lo permite con uno
+         * El primer parametro es valor que se quiere comprobar, el segundo es un operador condicional (==, >, >= ...), el tercero es el valor
+         * condicionante
+         */
+        Handlebars.registerHelper("IF", function (this: unknown, valor, condicion, valor2, options ): string {
+            return Function(`return '${valor}' ${condicion} '${valor2}'`)() ? options.fn(this) : "";
+        });
+        
+        
+        Handlebars.registerHelper("INCL", (datos, archivo): string => {
             try {
                 archivo = resolve(plantilla, "..", (<string>archivo).replace(/(?:\.\.\/)+/, "") + ".hbs");
-                if (typeof id === "string") return (new Render(datos, id, archivo)).renderizarPlantilla();
-                else return (new Render(datos, this._id, archivo)).renderizarPlantilla();
+                
+                // Compila la plantilla importada
+                const template = Handlebars.compile(readFileSync(archivo, "utf8"));
+                
+                // Renderiza la plantilla con los datos proporcionados
+                const rendered = template(datos);
+
+                // Devuelve la plantilla renderizada
+                return rendered;
             } catch (e) {
                 if (e instanceof ArchivoNoEncontrado) {
                     return "El archivo no existe";
@@ -95,6 +112,29 @@ export class Render {
                 res = `${res}\n${comentario_inicio}${elemento.toString?.()}${comentario_fin}`;
             });
             return res;
+        });
+
+        /**
+         * Funcion que ordena un array de objetos por cualquier propiedad de estos.
+         * El primer parametro es el array de objetos, el segundo la propiedad de los objetos y la tercera es un boleano para indicar el orden
+         */
+        Handlebars.registerHelper('ORD', (objeto, columna?, ascendente?): void => {
+            //Comprueba que el objeto no sea undefined o no sea un array
+            if (objeto === undefined || !Array.isArray(objeto)) throw new ErrorRenderizado("La tabla no existe o no es un array de objetos");
+            
+            //Comprueba si columna esta declarada, sino toma la columna ID
+            columna = columna || this._id;
+
+            //Comprueba si el orden es true, cualquier otro valor se toma como false
+            if (ascendente === true){
+                objeto.sort((a: Record<string, string | number>, b:Record<string, string | number>) => {
+                    return a[columna] > b[columna] ? 1 : -1 ;
+                });
+            } else{
+                objeto.sort((a: Record<string, string | number>, b:Record<string, string | number>) => {
+                    return a[columna] < b[columna] ? 1 : -1 ;
+                });
+            }
         });
 
         /**
@@ -153,7 +193,7 @@ export class Render {
             //Itera el array 
             for (const obj of objeto) {
                 //Funcion para evaluar la expresion compuesta, por ejemplo, return 'obj["Ciudad"]' != 'Ciudad1'
-                const eva = new Function(`return '${obj[campo]}' ${comparador} '${valor}'`);
+                const eva = Function(`return '${obj[campo]}' ${comparador} '${valor}'`);
                 //Ejecuta la funcion, la cual devuelve la expresion y es evaluada
                 if (eva()) {
                     //Concatena el objeto renderizado a la respuesta
@@ -174,12 +214,10 @@ export class Render {
             //Comprueba que el objeto no sea undefined o no sea un array
             if (objeto === undefined || !Array.isArray(objeto)) return "La tabla no existe o no es un array de objetos";
 
-            //Declara la respuesta
-            let res = "";
             //Extrae el ultimo elemento del array, que es la funcion de options, pasada automaticamente por handlebars
-            const options = args.slice(-1)[0];
+            const options = args.pop();
             //Extrae todos los demas argumentos 
-            let condicionales = args.slice(0, -1);
+            const condicionales = args;
 
             //Comprueba si la longitud de los condicionales 
             if ((condicionales.length - 1) % 3 != 0) {
@@ -190,7 +228,7 @@ export class Render {
             //Comprueba el primer argumento, en funcion del valor asigna el operador en la variable tipo
             const tipo = condicionales[0].toLowerCase() == "and" ? " && " : "|| ";
             //Modifica el valor de los condicionales eliminando el primer argumento
-            condicionales = condicionales.slice(1);
+            condicionales.shift();
 
             //Guarda la longitud de condicionales
             const longObjeto = condicionales.length;
@@ -206,21 +244,28 @@ export class Render {
             //Crea la express con los tres argumentos finales
             expresion += "'${" + condicionales[longObjeto - 3] + "}' " + condicionales[longObjeto - 2] + " '" + condicionales[longObjeto - 1] + "'";
 
+            //Declara la respuesta
+            const res = [];
 
             for (const obj of objeto) {
-                //Funcion para evaluar la expresion compuesta, primero compila la plantilla apartir del objeto y la expression resultante la devuelve 
-                const eva = new Function(`return ${expresion.compilarPlantilla(obj)}`);
-                //Ejecuta la funcion, la cual devuelve la expresion y es evaluada
-                if (eva()) {
+                //Compila y ejecuta la expresion de los condicionales
+                if (Function(`return ${expresion.compilarPlantilla(obj)}`)()) {
                     //Concatena el objeto renderizado a la respuesta
-                    res += options.fn(obj);
+                    res.push(options.fn(obj));
                 }
             }
 
             //Devuelve la respuesta
-            return res;
+            return res.join("");
         });
 
+        Handlebars.registerHelper("FFC", (fecha: string): string => {
+            if (fecha.trim() === "" || fecha === null || fecha === undefined ) return "";
+            const fecha_nueva = new Date(fecha);
+            let mes = fecha_nueva.toLocaleString("es-ES", {month: "long"});
+            mes = mes.charAt(0).toUpperCase().concat(mes.slice(1));
+            return `${mes} ${fecha_nueva.getFullYear()}`;
+        });
     }
 
     /**
