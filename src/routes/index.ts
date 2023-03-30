@@ -90,8 +90,6 @@ router.post("/json_html", comprobarAcceso, bodyDefinido, async (req: Request, re
             //Devuelve el html renderizado con el codigo de estado 200
             return respuesta(res, html, CODIGOS_ESTADO.OK);
         } catch (e) {
-            //En caso de error se almacena en el archivo 
-            logger.error_archivo("Error en json_html", {}, <Error>e);
             //Devuelve una respuesta indicado, junto con el mensaje del error y el codigo de estado 500
             return respuesta(res, "Fallo al renderizar el mensaje. Error" + (<Error>e).message, CODIGOS_ESTADO.Internal_Server_Error);
         }
