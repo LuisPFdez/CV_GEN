@@ -76,12 +76,14 @@ export class Render {
         
         Handlebars.registerHelper("INCL", (datos, archivo): string => {
             try {
+                //Obtiene la ruta de la plantilla a incluir, la ruta de la plantilla ha de estar en la misma carpeta que la plantilla desde la que se importa
+                //Se eliminan los puntos con el replace para evitar que se acceda a directorios superiores 
                 archivo = resolve(plantilla, "..", (<string>archivo).replace(/(?:\.\.\/)+/, "") + ".hbs");
                 
                 // Compila la plantilla importada
                 const template = Handlebars.compile(readFileSync(archivo, "utf8"));
                 
-                // Renderiza la plantilla con los datos proporcionados
+                // Renderiza la plantilla con los datos
                 const rendered = template(datos);
 
                 // Devuelve la plantilla renderizada
@@ -95,23 +97,37 @@ export class Render {
             }
         });
 
+        //Funcion que permite envolver cualquier valor en un comentario, el primer parametro indica el tipo de comentario
+        //Para html o javascript/css, los argumentos restantes seran los valores a comentar
         Handlebars.registerHelper("COM", (tipo_html, ...args) => {
-            let res = "";
+            //Array que contiene la respuesta
+            const res = [];
+
+            //Variables para los comentarios
             let comentario_inicio: string;
             let comentario_fin: string;
-
+            
             if (tipo_html) {
+                //Si se declara como un comentario html se usaran las llaves de apertura y cierre de html
                 comentario_inicio = "<!--";
                 comentario_fin = "-->";
             } else {
+                //Si no se declara como un comentario html se usaran las llaves de apertura y cierre de javascript/css
                 comentario_inicio = "//";
                 comentario_fin = "";
             }
 
+            //Elimina el primer valor e inserta la primera cadena de texto del comentario
+            res.push(`${comentario_inicio}${args.shift().toString?.()}${comentario_fin}`);
+            
+            //Recorre los demas valores
             args.forEach((elemento) => {
-                res = `${res}\n${comentario_inicio}${elemento.toString?.()}${comentario_fin}`;
+                //Añade los comentarios de cada valor, con un salto de linea al principio
+                res.push(`\n${comentario_inicio}${elemento.toString?.()}${comentario_fin}`);
             });
-            return res;
+
+            //Devuelve la respuesta concatenando todos los strings
+            return res.join("");
         });
 
         /**
@@ -259,11 +275,19 @@ export class Render {
             return res.join("");
         });
 
+        /**
+         * Funcion para formatear una fecha en una cadena de texto en el caso del mes seguido del año en formato numerico
+         */
         Handlebars.registerHelper("FFC", (fecha: string): string => {
+            //Si la fecha esta vacio o es null devuelve una cadena vacia
             if (fecha.trim() === "" || fecha === null || fecha === undefined ) return "";
+            //Crea un objeto date a partir de la fecha;
             const fecha_nueva = new Date(fecha);
+            //Obtiene el mes en español y en formato largo
             let mes = fecha_nueva.toLocaleString("es-ES", {month: "long"});
+            //Convierte la primera letra del mes en mayuscula
             mes = mes.charAt(0).toUpperCase().concat(mes.slice(1));
+            //Devuelve el mes seguido del año
             return `${mes} ${fecha_nueva.getFullYear()}`;
         });
     }
