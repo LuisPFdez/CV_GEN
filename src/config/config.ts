@@ -2,7 +2,7 @@
  * @file Archivo de configuración global
  */
 
-import { ConnectionConfig } from "mysql";
+import { ConnectionOptions } from "mysql2/promise";
 import { Logger } from "logger";
 import { ErrorGeneral } from "../errors/ErrorGeneral";
 import { existsSync, accessSync, lstatSync } from "fs";
@@ -52,7 +52,7 @@ String.prototype.compilarPlantilla = function (this: string, args: Record<string
 export const logger = new Logger();
 
 //Configuracion para la conexion a la base de datos
-export const DB_CONFIG: ConnectionConfig = {
+export const DB_CONFIG: ConnectionOptions = {
     database: process.env.DB_DATABASE,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,

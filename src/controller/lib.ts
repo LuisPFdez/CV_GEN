@@ -8,9 +8,8 @@ import { ErrorGeneral } from "../errors/ErrorGeneral";
 
 import { SpawnOptions, spawnSync } from "child_process";
 import { writeFileSync, existsSync, readFileSync, accessSync } from "fs";
-import { createConnection, ConnectionConfig, MysqlError } from "mysql";
+import { createConnection, QueryError, ConnectionOptions, Connection } from "mysql2/promise";
 import { R_OK } from "constants";
-import { promisify } from "util";
 import { SHA256 } from "crypto-js";
 import { join } from "path";
 
@@ -20,33 +19,32 @@ import { join } from "path";
  * @param esquema String[], tablas de la base de datos de las cuales se obtendran los datos
  * @returns MDatos, json con los datos de la base de datos
  */
-async function bbdd_a_json(config: ConnectionConfig, esquema?: string[]): Promise<MDatos> {
+async function bbdd_a_json(config: ConnectionOptions, esquema?: string[]): Promise<MDatos> {
     //El modelo permite definir en que tablas se ha de buscar
-    const modelo = esquema || ["Adicional", "Datos", "Experiencia", "Formacion", "Habilidades", "Idiomas"];
+    const modelo = esquema || ["Adicional", "Datos", "Experiencia", "Experiencia_Adicional", "Formacion", "Formacion_Adicional", "Habilidades", "Idiomas"];
     //La tabla tokens no puede ser incluida en los datos, al contener todos los tokens del 
     modelo.indexOf("Tokens") >= 0 ? modelo.splice(modelo.indexOf("Tokens"), 1) : null;
     //JSON que será devuelto, contiene la informacion de la base de datos en forma JSON;
     const json: Record<string, Array<Record<string, string>>> = {};
     //Las consultas de la base de datos se haran de forma asincrona, en este array se guardan todas esas consultas.
     const queries: Promise<unknown>[] = [];
-    //Crea la conexion
-    const conexion = createConnection(config);
-    //Establece la funcion conexion.query para permitir el uso de promesas, es necesario vincularla al objeto conexion para que funcione 
-    const query = promisify(conexion.query).bind(conexion);
+    //Crea la conexion y ejecuta la conexion.
+    const conexion: Connection = await createConnection(config).catch((error) => {
+        //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
+        throw new ErrorMysql("Error (" + error.name + ") al conectarese a la base de datos: " + error.message, CODIGOS_ESTADO.Internal_Server_Error);
+    });
 
-    //Inicia la conexion, en caso de error lo lanza
-    conexion.connect();
     //Recorre todas las tablas del modelo
     modelo.forEach((tabla) => {
         //Ejecuta la consulta y la añade al array de consultas 
-        queries.push(query(`Select * from ${tabla}`).then((datos) => {
+        queries.push(conexion.query(`Select * from ${tabla}`).then(([datos]) => {
             //En caso de que se ejecute correctamente se almacenan todos los datos en la propiedad correspondiente
             json[tabla] = [];
             for (const valor of datos as []) { //Recorre el array de datos, cada posicion corresponde a una linea de la tabla
                 //Añade el objeto que correponde a la fila, para eliminar RowDataPacket del objeto, se pasa a string y luego a JSON
                 json[tabla].push(JSON.parse(JSON.stringify(valor)));
             }
-        }).catch((error: MysqlError) => {
+        }).catch((error: QueryError) => {
             //Destruye la conexion con la base de datos, evita las operaciones restates
             conexion.end();
             //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
@@ -66,15 +64,14 @@ async function bbdd_a_json(config: ConnectionConfig, esquema?: string[]): Promis
  * @param token string, token a insertar
  * @param config ConnectionConfig, configuracion para la conexion a la base de datos 
  */
-async function token_bbdd(token: string, config: ConnectionConfig): Promise<void> {
-    //Crea la conexion
-    const conexion = createConnection(config);
-    //Establece la funcion conexion.query para permitir el uso de promesas, se vincula el objeto conexion
-    const query = promisify(conexion.query).bind(conexion);
-    //Inicia la conexion
-    conexion.connect();
+async function token_bbdd(token: string, config: ConnectionOptions): Promise<void> {
+    //Crea la conexion y ejecuta la conexion.
+    const conexion: Connection = await createConnection(config).catch((error) => {
+        //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
+        throw new ErrorMysql("Error (" + error.name + ") al conectarese a la base de datos: " + error.message, CODIGOS_ESTADO.Internal_Server_Error);
+    });
     //Inserta los tokens, encriptado con un SHA256 (reduce su longitod a 64 caracteres) 
-    await query(`Insert into Tokens values ('${SHA256(token).toString()}')`).catch((error: MysqlError) => {
+    await conexion.execute('Insert into Tokens values (?)', [SHA256(token).toString()]).catch((error: QueryError) => {
         //Destruye la conexion con la base de datos, evita las operaciones restates
         conexion.end();
         //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
@@ -89,15 +86,14 @@ async function token_bbdd(token: string, config: ConnectionConfig): Promise<void
  * @param token string, token a borrar
  * @param config ConnectionConfig, configuracion para la conexion a la base de datos 
  */
-async function borrar_token(token: string, config: ConnectionConfig): Promise<void> {
-    //Crea la conexion
-    const conexion = createConnection(config);
-    //Establece la funcion conexion.query para permitir el uso de promesas, se vincula el objeto conexion
-    const query = promisify(conexion.query).bind(conexion);
-    //Inicia la conexion
-    conexion.connect();
+async function borrar_token(token: string, config: ConnectionOptions): Promise<void> {
+    //Crea la conexion y ejecuta la conexion.
+    const conexion: Connection = await createConnection(config).catch((error) => {
+        //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
+        throw new ErrorMysql("Error (" + error.name + ") al conectarese a la base de datos: " + error.message, CODIGOS_ESTADO.Internal_Server_Error);
+    });
     //Ejecuta el query para borrar de la base de datos, es necesario encritparlo ya que en la base de datos estan todos encriptados
-    await query(`Delete from Tokens where Token = '${SHA256(token).toString()}'`).catch((error: MysqlError) => {
+    await conexion.execute('Delete from Tokens where Token = ?', [SHA256(token).toString()]).catch((error: QueryError) => {
         //Destruye la conexion con la base de datos, evita las operaciones restates
         conexion.end();
         //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
@@ -112,17 +108,16 @@ async function borrar_token(token: string, config: ConnectionConfig): Promise<vo
  * @param config ConnectionConfig, configuracion para la conexion a la base de datos
  * @returns string[], Array con los tokens
  */
-async function bbdd_token(config: ConnectionConfig): Promise<string[]> {
+async function bbdd_token(config: ConnectionOptions): Promise<string[]> {
     //Array de strings con todos los tokens
     const tokens: string[] = [];
-    //Crea la conexion
-    const conexion = createConnection(config);
-    //Establece la funcion conexion.query para permitir el uso de promesas, se vincula el objeto conexion
-    const query = promisify(conexion.query).bind(conexion);
-    //Inicia la conexion
-    conexion.connect();
+    //Crea la conexion y ejecuta la conexion.
+    const conexion: Connection = await createConnection(config).catch((error) => {
+        //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
+        throw new ErrorMysql("Error (" + error.name + ") al conectarese a la base de datos: " + error.message, CODIGOS_ESTADO.Internal_Server_Error);
+    });
     //Ejecuta el query de busqueda
-    await query('Select * from Tokens').then((resultado) => {
+    await conexion.query('Select * from Tokens').then(([resultado]) => {
         //Se itera el resultado
         for (const token of resultado as []) {
             //Obtiene la propiedad token del objeto
@@ -130,7 +125,7 @@ async function bbdd_token(config: ConnectionConfig): Promise<string[]> {
             //Añade el valor al array de los tokens
             tokens.push(Token);
         }
-    }).catch((error: MysqlError) => {
+    }).catch((error: QueryError) => {
         //Destruye la conexion con la base de datos, evita las operaciones restates
         conexion.end();
         //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
@@ -190,20 +185,19 @@ function html_a_pdf(argumentos: Array<string>, opciones: SpawnOptions = {}, call
  * @param config ConnectionConfig, configuracion para la conexion a la base de datos
  * @returns el resultado de la consulta, en caso de que la consulta sea incorrecta lanza una excepcion
  */
-async function ejecutar_consulta(consulta: string, config: ConnectionConfig): Promise<Array<Record<string, string>>> {
-    //Crea la conexion
-    const conexion = createConnection(config);
-    //Establece la funcion conexion.query para permitir el uso de promesas, se vincula el objeto conexion
-    const query = promisify(conexion.query).bind(conexion);
-    //Inicia la conexion
-    conexion.connect();
+async function ejecutar_consulta(consulta: string, config: ConnectionOptions): Promise<Array<Record<string, string>>> {
+    //Crea la conexion y ejecuta la conexion.
+    const conexion: Connection = await createConnection(config).catch((error) => {
+        //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
+        throw new ErrorMysql("Error (" + error.name + ") al conectarese a la base de datos: " + error.message, CODIGOS_ESTADO.Internal_Server_Error);
+    });
     //Variable con los datos de salida
     let datos: Array<Record<string, string>> = [];
     //Ejecuta la sentencia pasada por parametro
-    await query(consulta).then((datos_query) => {
+    await conexion.query(consulta).then((datos_query) => {
         //Convierte los datos a un JSON.
         datos = JSON.parse(JSON.stringify(datos_query));
-    }).catch((error: MysqlError) => {
+    }).catch((error: QueryError) => {
         //Destruye la conexion con la base de datos, evita las operaciones restates
         conexion.end();
         //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
@@ -221,21 +215,20 @@ async function ejecutar_consulta(consulta: string, config: ConnectionConfig): Pr
  * @param config ConnectionConfig, configuracion para la conexion a la base de datos
  * @returns un objeto con los resultados de las consultas, el objeto se compone de el nombre de la consulta ejecutada (el parametro consultas) y su resultado. Si una consulta es incorrecta lanza una excepcion
  */
-async function ejecutar_multiples_consultas(consultas: Record<string | number, string> | string[], config: ConnectionConfig): Promise<MDatos> {
+async function ejecutar_multiples_consultas(consultas: Record<string | number, string> | string[], config: ConnectionOptions): Promise<MDatos> {
     //Establece el objeto de las consultas.
     let oConsultas: Record<string, string> = {};
     //Comprueba si consultas es un array. En caso de ser un array convierte el array a un objeto 
     if (Array.isArray(consultas)) consultas.forEach(((valor, index) => { oConsultas[index.toString()] = valor }));
     //En caso de no ser un objeto asigna consultas a oConsultas
     else oConsultas = consultas;
-    //Crea la conexion
-    const conexion = createConnection(config);
-    //Establece la funcion conexion.query para permitir el uso de promesas, se vincula el objeto conexion
-    const query = promisify(conexion.query).bind(conexion);
     //Las consultas de la base de datos se haran de forma asincrona, en este array se guardan todas esas consultas.
     const queries: Promise<unknown>[] = [];
-    //Inicia la conexion    
-    conexion.connect();
+    //Crea la conexion y ejecuta la conexion.
+    const conexion: Connection = await createConnection(config).catch((error) => {
+        //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
+        throw new ErrorMysql("Error (" + error.name + ") al conectarese a la base de datos: " + error.message, CODIGOS_ESTADO.Internal_Server_Error);
+    });
     //Variable con los datos de salida, o un valor booleano
     const datos: MDatos = {};
     //Establece para hacer una 
@@ -243,10 +236,10 @@ async function ejecutar_multiples_consultas(consultas: Record<string | number, s
     //Recorre las consultas
     Object.keys(oConsultas).forEach((consulta) => {
         //Ejecuta la sentencia y alamacena la query en un array de promesas
-        queries.push(query(oConsultas[consulta]).then((datos_query) => {
+        queries.push(conexion.query(oConsultas[consulta]).then((datos_query) => {
             //Convierte los datos a un JSON y los almacena el la propiedad de objeto correspondiente a la sentencia ejecutada
             datos[consulta] = JSON.parse(JSON.stringify(datos_query));
-        }).catch((error: MysqlError) => {
+        }).catch((error: QueryError) => {
             //Ejecuta un rollback para evitar cambiar los datos
             conexion.rollback();
             //Destruye la conexion con la base de datos, evita las operaciones restates
@@ -312,12 +305,13 @@ async function restablecer_tabla(nombreArchivo: string): Promise<void> {
         accessSync(nombreArchivo, R_OK);
         //Lee el archivo y almacena la informacion en la variable datos archivo.
         const datos_archivo = readFileSync(nombreArchivo, { encoding: codificacion });
-        //Crea la conexion, establece la opcion de multiples consultas 
-        const conexion = createConnection({ multipleStatements: true, ...DB_CONFIG });
-        //Establece la funcion conexion.query para permitir el uso de promesas, se vincula el objeto conexion
-        const query = promisify(conexion.query).bind(conexion);
+        //Crea la conexion y ejecuta la conexion.
+        const conexion: Connection = await createConnection({multipleStatements: true, ...DB_CONFIG}).catch((error) => {
+            //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
+            throw new ErrorMysql("Error (" + error.name + ") al conectarese a la base de datos: " + error.message, CODIGOS_ESTADO.Internal_Server_Error);
+        });
         //Ejecuta el query a partir de las consultas del archivo
-        await query(datos_archivo).catch((error: MysqlError) => {
+        await conexion.query(datos_archivo).catch((error: QueryError) => {
             //Destruye la conexion con la base de datos.
             conexion.end();
             //En caso de error se lanza un nuevo error, con el nombre y el mensaje del error capturado
